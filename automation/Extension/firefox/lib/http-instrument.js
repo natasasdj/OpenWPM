@@ -222,6 +222,8 @@ function binaryHashtoHex(hash) {
 
 function logWithResponseBody(respEvent, update) {
   // log with response body from an 'http-on-examine(-cached)?-response' event
+  console.log("test");
+  console.error("Test");
   var newListener = new TracingListener();
   respEvent.subject.QueryInterface(Ci.nsITraceableChannel);
   newListener.originalListener = respEvent.subject.setNewListener(newListener);

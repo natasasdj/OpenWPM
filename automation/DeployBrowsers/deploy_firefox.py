@@ -1,4 +1,4 @@
-from ..MPLogger import loggingclient
+from ..MPLogger import loggingclient#, loggingServerJS
 from ..Commands.profile_commands import load_profile
 import configure_firefox
 
@@ -85,10 +85,21 @@ def deploy_firefox(status_queue, browser_params, manager_params, crash_recovery)
         extension_config = dict()
         extension_config.update(browser_params)
         extension_config['sqlite_address'] = manager_params['aggregator_address']
+        extension_config['data_directory'] = manager_params['data_directory']
+        logger.debug("BROWSER %i: data directory set up" % browser_params['crawl_id'] )
+	# log_status_queue = Queue()
+        # loggingJS = Process(target=LoggingServerJS,
+        #                     args=(self.manager_params, log_status_queue))
+        # loggingJS.daemon = True
+        # loggingJS.start()
+        # extension_config['log_address'] = log_status_queue.get()  # socket location: (address, port)
+
         if manager_params.has_key('ldb_address'):
             extension_config['leveldb_address'] = manager_params['ldb_address']
         else:
             extension_config['leveldb_address'] = None
+	
+        
         with open(browser_profile_path + 'browser_params.json', 'w') as f:
             json.dump(extension_config, f)
         logger.debug("BROWSER %i: OpenWPM Firefox extension loaded" % browser_params['crawl_id'])

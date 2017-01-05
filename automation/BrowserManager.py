@@ -59,6 +59,7 @@ class Browser:
         self.browser_settings = None  # dict of additional browser profile settings (e.g. screen_res)
         self.browser_manager = None # process that controls browser
         self.logger = loggingclient(*self.logger_address) # connection to loggingserver
+        
 
     def ready(self):
         """ return if the browser is ready to accept a command """
@@ -204,6 +205,7 @@ class Browser:
 
     def shutdown_browser(self, during_init):
         """ Runs the closing tasks for this Browser/BrowserManager """
+        #time.sleep(200)
         # Join command thread
         if self.command_thread is not None:
             self.logger.debug("BROWSER %i: Joining command thread" % self.crawl_id)

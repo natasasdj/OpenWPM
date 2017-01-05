@@ -17,8 +17,8 @@ for i in xrange(NUM_BROWSERS):
 # browser_params[0]['headless'] = True #Launch only browser 0 headless
 
 # Update TaskManager configuration (use this for crawl-wide settings)
-manager_params['data_directory'] = '~/projects/test1'
-manager_params['log_directory'] = '~/projects/test1'
+manager_params['data_directory'] = '~/projects/test'
+manager_params['log_directory'] = '~/projects/test'
 
 # Instantiates the measurement platform
 # Commands time out by default after 60 seconds

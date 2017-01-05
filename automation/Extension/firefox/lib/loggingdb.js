@@ -1,21 +1,30 @@
 const fileIO            = require("sdk/io/file");
 const system            = require("sdk/system");
+const {Cc, Ci, CC, Cu, components} = require("chrome");
+
 var socket              = require("./socket.js");
 
-var crawlID = null;
+var crawlId= null;
 var visitID = null;
 var debugging = false;
 var sqliteAggregator = null;
 var ldbAggregator = null;
+var aFile = null;
+var dataDirectrory = null;
+//var logAggregator = null;
 var listeningSocket = null;
+var noFile=null;
 
-exports.open = function(sqliteAddress, ldbAddress, crawlID) {
+exports.open = function(sqliteAddress, ldbAddress, dataDir, crawlID) {
     if (sqliteAddress == null && ldbAddress == null && crawlID == '') {
         console.log("Debugging, everything will output to console");
         debugging = true;
         return;
     }
-    crawlID = crawlID;
+    
+    crawlId = crawlID;
+    dataDirectory = dataDir;
+    console.log("Data dir ", dataDir);
 
     // Connect to databases for saving data
     console.log("Opening socket connections...");
@@ -30,6 +39,20 @@ exports.open = function(sqliteAddress, ldbAddress, crawlID) {
         console.log("ldbSocket started?",rv);
     }
 
+    aFile = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
+    console.log("aFile: ",aFile);
+    console.log ('noFile', noFile);
+    noFile=0;
+    console.log ('noFile', noFile);
+ /*   // Connect to loggingServerJS for logging information and debugging data
+    if (logAddress != null) {
+        logAggregator = new socket.SendingSocket();
+        var rv = logAggregator.connect(logAddress[0], logAddress[1]);
+        console.log("sqliteSocket started?",rv);
+    } */
+   
+  
+
     // Listen for incomming urls as visit ids
     listeningSocket = new socket.ListeningSocket();
     var path = system.pathFor("ProfD") + '/extension_port.txt';
@@ -42,6 +65,8 @@ exports.open = function(sqliteAddress, ldbAddress, crawlID) {
     }
     console.log("Starting socket listening for incomming connections.");
     listeningSocket.startListening();
+
+    
 };
 
 exports.close = function() {
@@ -94,6 +119,8 @@ exports.escapeString = function(string) {
     return encode_utf8(string);
 };
 
+
+
 exports.boolToInt = function(bool) {
     return bool ? 1 : 0;
 };
@@ -120,3 +147,33 @@ exports.createInsert = function(table, update) {
     statement = statement + ") " + value_str + ")";
     return [statement, values];
 }
+
+exports.writeRespBodyIntoFile = function(respBody) { 
+  console.log ('noFile', noFile);
+  noFile = noFile + 1;
+  console.log ('noFile', noFile);
+  var name = "/httpResp/file-" + crawlId + "-" + noFile;
+  var fileName = dataDirectory + name;
+  console.log("fileName ",fileName);   
+  aFile.initWithPath(fileName);
+  aFile.createUnique(Ci.nsIFile.NORMAL_FILE_TYPE, 0600);
+  var stream = Cc["@mozilla.org/network/safe-file-output-stream;1"].createInstance(Ci.nsIFileOutputStream);
+  console.log("stream: ",stream);
+  stream.init(aFile, 0x04 | 0x08 | 0x20, 0600, 0); // readwrite, create, truncate           
+  stream.write(respBody, respBody.length);    
+  if (stream instanceof Ci.nsISafeOutputStream) {
+    stream.finish();
+    console.log("finish stream ");
+  } else {
+    stream.close();
+    console.log("close stream ");
+  };
+  return '~' + name
+}
+
+
+
+/*
+exports.logging = function(text){
+    loggingAggregator.send(text)
+}*/

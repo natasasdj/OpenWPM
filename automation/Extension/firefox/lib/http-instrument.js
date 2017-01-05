@@ -1,4 +1,5 @@
 // TODO: doesn't work with e10s -- be sure to launch nightly disabling remote tabs
+const fileIO            = require("sdk/io/file");
 const {Cc, Ci, CC, Cu, components} = require("chrome");
 const events      = require("sdk/system/events");
 const data        = require("sdk/self").data;
@@ -186,7 +187,7 @@ TracingListener.prototype = {
     var oStream = new BinaryOutputStream(sStream.getOutputStream(0));
 
     // Copy received data as they come.
-    var data = iStream.readBytes(aCount);
+    var data = iStream.readBytes(aCount); 
     this.receivedChunks.push(data);
     oStream.writeBytes(data, aCount);
 
@@ -222,14 +223,40 @@ function binaryHashtoHex(hash) {
 
 function logWithResponseBody(respEvent, update) {
   // log with response body from an 'http-on-examine(-cached)?-response' event
-  console.log("test");
-  console.error("Test");
+  var newListener = new TracingListener();
+  respEvent.subject.QueryInterface(Ci.nsITraceableChannel);
+  newListener.originalListener = respEvent.subject.setNewListener(newListener);
+  newListener.promiseDone.then(function() {    
+  var respBody = newListener.responseBody; // get response body as a string
+  fileName = loggingDB.writeRespBodyIntoFile(respBody);
+  update["file_name"] = fileName;
+  loggingDB.executeSQL(loggingDB.createInsert("http_responses", update), true);
+  }, function(aReason) {
+    console.error("Unable to retrieve response body.",aReason);
+    update["content_hash"] = "<error>";
+    loggingDB.executeSQL(loggingDB.createInsert("http_responses", update), true);
+  }).catch(function(aCatch) {
+    console.error('Unable to retrieve response body.',
+        'Likely caused by a programming error. Error Message:', aCatch);
+    update["content_hash"] = "<error>";
+    loggingDB.executeSQL(loggingDB.createInsert("http_responses", update), true);
+  });
+}
+
+
+
+function logWithResponseBody2(respEvent, update) {
+  // log with response body from an 'http-on-examine(-cached)?-response' event
+  console.log("logWithResponseBody");
   var newListener = new TracingListener();
   respEvent.subject.QueryInterface(Ci.nsITraceableChannel);
   newListener.originalListener = respEvent.subject.setNewListener(newListener);
   newListener.promiseDone.then(function() {
-    var respBody = newListener.responseBody; // get response body as a string
-    var bodyBytes = converter.convertToByteArray(respBody); // convert to bytes
+    
+   var respBody = newListener.responseBody; // get response body as a string
+   console.log("respBody: ",respBody);
+   var bodyBytes = converter.convertToByteArray(respBody); // convert to bytes
+   console.log("bodyBytes: ",bodyBytes);
     cryptoHash.init(cryptoHash.MD5);
     cryptoHash.update(bodyBytes, bodyBytes.length);
     var contentHash = binaryHashtoHex(cryptoHash.finish(false));
@@ -249,7 +276,12 @@ function logWithResponseBody(respEvent, update) {
   });
 }
 
+
 function isJS(httpChannel) {
+  return true
+}
+
+function isJS2(httpChannel) {
   // Return true if this channel is loading javascript
   // We rely mostly on the content policy type to filter responses
   // and fall back to the URI and content type string for types that can
@@ -364,3 +396,9 @@ exports.run = function(crawlID, saveJavascript) {
     httpResponseHandler(event, true, crawlID, saveJavascript);
   }, true);
 };
+
+
+
+
+
+

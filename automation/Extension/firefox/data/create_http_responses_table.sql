@@ -12,5 +12,5 @@ CREATE TABLE IF NOT EXISTS http_responses(
   headers TEXT NOT NULL,
   location TEXT NOT NULL,
   time_stamp TEXT NOT NULL,
-  content_hash TEXT
+  file_name TEXT
 );

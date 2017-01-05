@@ -22,19 +22,24 @@ exports.main = function(options, callbacks) {
     var config = {
       sqlite_address:null,
       leveldb_address:null,
+      data_directory:null,
       disable_webdriver_self_id:true,
       cookie_instrument:true,
       js_instrument:true,
       cp_instrument:true,
       http_instrument:true,
       save_javascript:true,
-      crawl_id:''
+      crawl_id:''     
     };
   }
 
+  
   loggingDB.open(config['sqlite_address'],
                  config['leveldb_address'],
+                 config['data_directory'],
                  config['crawl_id']);
+
+ // loggingDB.logging("TESTING")
 
   // Prevent the webdriver from identifying itself in the DOM. See #91
   if (config['disable_webdriver_self_id']) {

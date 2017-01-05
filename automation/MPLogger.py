@@ -136,3 +136,51 @@ if __name__ == '__main__':
     status_queue.put('DIE')
     loggingserver.join()
     print "Server closed, exiting..."
+
+
+"""def LoggingServerJS(manager_params, status_queue):
+    """"""
+     Receives logging information from extension firefox js files 
+
+     <manager_params> TaskManager configuration parameters
+     <status_queue> is a queue connect to the TaskManager used for communication
+     <commit_batch_size> is the number of execution statements that should be made before a commit (used for speedup)
+    """
+"""
+    # sets up logging connection
+    logger = loggingclient(*manager_params['logger_address'])
+
+    # sets up the serversocket to start accepting connections
+    sock = serversocket()
+    status_queue.put(sock.sock.getsockname())  # let BM know location
+    sock.start_accepting()
+
+    while True:
+        # received KILL command from BrowserManager
+        if not status_queue.empty():
+            status_queue.get()
+            sock.close()
+            drain_queue(sock.queue)
+            break
+
+        # no command for now -> sleep to avoid pegging CPU on blocking get
+        if sock.queue.empty():
+            time.sleep(0.001)
+
+
+        # process query
+        query = sock.queue.get()
+        logger.debug(query)
+
+        
+def drain_queue(sock_queue):
+"""   
+""" Ensures queue is empty before closing """
+"""   time.sleep(3)  # TODO: the socket needs a better way of closing
+    while not sock_queue.empty():
+        query = sock_queue.get()
+        logger.debug(query)
+
+
+
+"""

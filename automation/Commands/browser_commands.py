@@ -142,6 +142,30 @@ def extract_links(webdriver, browser_params, manager_params):
 
     sock.close()
 
+
+########## THIS WAS JUST FOR TESTING #############
+def browse_links(webdriver, browser_params, manager_params):
+    link_elements = webdriver.find_elements_by_tag_name('a')
+    link_urls = set(element.get_attribute("href") for element in link_elements)
+    print('nesto\n')
+    # Connect to logger
+    logger = loggingclient(*manager_params['logger_address'])
+
+    if len(link_urls) > 0:
+        url = webdriver.current_url       
+        for link in link_urls:
+            logger.info("BROWSER %i: visiting internal link %s" % (browser_params['crawl_id'], link))
+    
+
+    logger.info("BROWSER %i: Another way another way" % (browser_params['crawl_id']))
+    url = webdriver.current_url
+    links = get_intra_links(webdriver, url)
+    for link in links:
+        logger.info("BROWSER %i: visiting internal link %s" % (browser_params['crawl_id'], link.get_attribute("href")))
+    
+
+
+
 def browse_website(url, num_links, sleep, visit_id, webdriver, proxy_queue,
                    browser_params, manager_params, extension_socket):
     """Calls get_website before visiting <num_links> present on the page.

@@ -448,7 +448,7 @@ class TaskManager:
                            # cookies can be properly tracked.
         for command_and_timeout in command_sequence.commands_with_timeout:
             command, timeout = command_and_timeout
-            if command[0] in ['GET', 'BROWSE']:
+            if command[0] in ['GET', 'BROWSE','BROWSE_LINKS]:
                 start_time = time.time()
                 command += (browser.curr_visit_id,)
             elif command[0] in ['DUMP_FLASH_COOKIES', 'DUMP_PROFILE_COOKIES']:
@@ -458,7 +458,7 @@ class TaskManager:
             browser.command_queue.put(command)
             command_succeeded = 0 #1 success, 0 failure from error, -1 timeout
             command_arguments = command[1] if len(command) > 1 else None
-
+            
             # received reply from BrowserManager, either success signal or failure notice
             try:
                 status = browser.status_queue.get(True, browser.current_timeout)
@@ -489,6 +489,12 @@ class TaskManager:
                             (browser.crawl_id, command[0], command_arguments, command_succeeded)))
 
             if command_succeeded != 1:
+
+                if command_arguments is not None: 
+                    with open(self.manager_params['data_directory']+'/unsuccessful_crawl.csv','a') as f:
+                        f.write(command_arguments)
+                        f.write('\n')
+                
                 with self.threadlock:
                     self.failurecount += 1
                 if self.failurecount > self.failure_limit:
@@ -524,8 +530,8 @@ class TaskManager:
                 return
             browser.restart_required = False
 
-    def execute_command_sequence(self, command_sequence, index=None):
-        self._distribute_command(command_sequence, index)
+    def execute_command_sequence(self, command_sequence, index=None):            
+        self._distribute_command(command_sequence, index)        
 
     # DEFINITIONS OF HIGH LEVEL COMMANDS
     # NOTE: These wrappers are provided for convenience. To issue sequential

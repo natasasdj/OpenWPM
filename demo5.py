@@ -1,9 +1,9 @@
 from automation import TaskManager, CommandSequence
 
 # The list of sites that we wish to crawl
-NUM_BROWSERS = 1
-sites = ['http://www.google.com']
-#sites = ['http://www.blic.rs']
+NUM_BROWSERS = 3
+#sites = ['http://www.google.com']
+sites = ['http://www.blic.rs']
 
 # Loads the manager preference and 3 copies of the default browser dictionaries
 manager_params, browser_params = TaskManager.load_default_params(NUM_BROWSERS)
@@ -31,13 +31,14 @@ for site in sites:
     command_sequence = CommandSequence.CommandSequence(site)
 
     # Start by visiting the page
-    command_sequence.get(sleep=0, timeout=60)
-    
+    #command_sequence.get(sleep=0, timeout=60)
+    command_sequence.browse(sleep=0, num_links=3, timeout=60)
+    #command_sequence.browse_links(timeout=30)
 
     # dump_profile_cookies/dump_flash_cookies closes the current tab.
     #command_sequence.dump_profile_cookies(120)
 
-    manager.execute_command_sequence(command_sequence, index='**') # ** = synchronized browsers
+    manager.execute_command_sequence(command_sequence, index=None) # index = None = first come / first serve
 
 # Shuts down the browsers and waits for the data to finish logging
 manager.close()

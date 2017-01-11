@@ -53,6 +53,14 @@ class CommandSequence:
         self.commands_with_timeout.append((command, timeout))
         self.contains_get_or_browse = True
 
+    def browse2(self, num_links = 2, sleep=0, timeout=60):
+        """ browse a website and visit <num_links> links on the page """
+        self.total_timeout += timeout
+        command = ('BROWSE2', self.url, num_links, sleep)
+        self.commands_with_timeout.append((command, timeout))
+        self.contains_get_or_browse = True
+        print("Browse2")
+
     def dump_flash_cookies(self, timeout=60):
         """ dumps the local storage vectors (flash, localStorage, cookies) to db
         Side effect: closes the current tab."""

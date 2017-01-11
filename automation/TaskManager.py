@@ -448,9 +448,12 @@ class TaskManager:
                            # cookies can be properly tracked.
         for command_and_timeout in command_sequence.commands_with_timeout:
             command, timeout = command_and_timeout
-            if command[0] in ['GET', 'BROWSE','BROWSE_LINKS]:
+            if command[0] in ['GET', 'BROWSE','BROWSE_LINKS']:
                 start_time = time.time()
                 command += (browser.curr_visit_id,)
+            elif command[0] in ['BROWSE2']:
+                start_time = time.time()
+                command += (browser.curr_visit_id, )
             elif command[0] in ['DUMP_FLASH_COOKIES', 'DUMP_PROFILE_COOKIES']:
                 command += (start_time, browser.curr_visit_id,)
             browser.current_timeout = timeout

@@ -2,6 +2,7 @@ CREATE TABLE IF NOT EXISTS http_requests(
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   crawl_id INTEGER NOT NULL,
   visit_id INTEGER NOT NULL,
+  visit_domain_id INTEGER,
   url TEXT NOT NULL,
   top_level_url TEXT,
   method TEXT NOT NULL,

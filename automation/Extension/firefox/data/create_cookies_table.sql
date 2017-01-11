@@ -2,6 +2,7 @@ CREATE TABLE IF NOT EXISTS javascript_cookies(
     id INTEGER PRIMARY KEY ASC,
     crawl_id INTEGER,
     visit_id INTEGER,
+    visit_domain_id INTEGER,
     change TEXT,
     creationTime DATETIME,
     expiry DATETIME,

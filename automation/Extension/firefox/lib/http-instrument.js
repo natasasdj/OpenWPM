@@ -153,6 +153,7 @@ var httpRequestHandler = function(reqEvent, crawlID) {
     //Exceptions expected for channels triggered by a NullPrincipal or SystemPrincipal
     //TODO probably a cleaner way to handle this
   }
+  console.log('create insert');
   loggingDB.executeSQL(loggingDB.createInsert("http_requests", update), true);
 };
 
@@ -229,6 +230,7 @@ function logWithResponseBody(respEvent, update) {
   newListener.promiseDone.then(function() {    
   var respBody = newListener.responseBody; // get response body as a string
   fileName = loggingDB.writeRespBodyIntoFile(respBody);
+  console.log("fileName ", fileName)
   update["file_name"] = fileName;
   loggingDB.executeSQL(loggingDB.createInsert("http_responses", update), true);
   }, function(aReason) {
@@ -254,9 +256,7 @@ function logWithResponseBody2(respEvent, update) {
   newListener.promiseDone.then(function() {
     
    var respBody = newListener.responseBody; // get response body as a string
-   console.log("respBody: ",respBody);
    var bodyBytes = converter.convertToByteArray(respBody); // convert to bytes
-   console.log("bodyBytes: ",bodyBytes);
     cryptoHash.init(cryptoHash.MD5);
     cryptoHash.update(bodyBytes, bodyBytes.length);
     var contentHash = binaryHashtoHex(cryptoHash.finish(false));

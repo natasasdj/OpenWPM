@@ -6,6 +6,7 @@ var socket              = require("./socket.js");
 
 var crawlId= null;
 var visitID = null;
+var visitDomainID = null
 var debugging = false;
 var sqliteAggregator = null;
 var ldbAggregator = null;
@@ -125,11 +126,13 @@ exports.boolToInt = function(bool) {
     return bool ? 1 : 0;
 };
 
-exports.createInsert = function(table, update) {
+exports.createInsert2 = function(table, update) {
     // Add top url visit id if changed
     while (!debugging && listeningSocket.queue.length != 0) {
         visitID = listeningSocket.queue.shift();
         console.log("Visit Id:",visitID);
+        visitID = visit["visit_id"];
+        visitDomainID  = visit["visit_domain_id"];
     }
 
     update["visit_id"] = visitID;
@@ -148,25 +151,60 @@ exports.createInsert = function(table, update) {
     return [statement, values];
 }
 
+
+exports.createInsert = function(table, update) {
+    // Add top url visit id if changed
+    while (!debugging && listeningSocket.queue.length != 0) {
+        visit = listeningSocket.queue.shift();      
+        console.log("1 Visit: ",visit);
+        visitID = visit["visit_id"];
+        visitDomainID  = visit["visit_domain_id"];
+        noFile = 0;
+        
+    }
+    //console.log("1 visitID and visitDomainID ",visitID, " ", visitDomainID) 
+    
+    update["visit_id"] = visitID;
+    update["visit_domain_id"] = visitDomainID;
+
+    var statement = "INSERT INTO " + table + " (";
+    var value_str = "VALUES (";
+        var values = [];
+    var first = true;
+    for(var field in update) {
+        statement += (first ? "" : ", ") + field;
+        value_str += (first ? "?" : ",?");
+                values.push(update[field]);
+        first = false;
+    }
+    statement = statement + ") " + value_str + ")";
+    return [statement, values];
+}
+
+
 exports.writeRespBodyIntoFile = function(respBody) { 
-  console.log ('noFile', noFile);
+  while (!debugging && listeningSocket.queue.length != 0) {
+    visit = listeningSocket.queue.shift();      
+    console.log("2 Visit: ",visit);
+    noFile = 0;
+    visitID = visit["visit_id"];
+    visitDomainID  = visit["visit_domain_id"];  
+  }
+  console.log("2 visitID and visitDomainID ",visitID, " ", visitDomainID)  
+  
   noFile = noFile + 1;
-  console.log ('noFile', noFile);
-  var name = "/httpResp/file-" + crawlId + "-" + noFile;
-  var fileName = dataDirectory + name;
-  console.log("fileName ",fileName);   
+  var name = "file-" + visitID + "-" + visitDomainID + "-" + noFile;
+  console.log("File name: ",name);
+  var fileName = dataDirectory + "/httpResp/" + name;  
   aFile.initWithPath(fileName);
   aFile.createUnique(Ci.nsIFile.NORMAL_FILE_TYPE, 0600);
   var stream = Cc["@mozilla.org/network/safe-file-output-stream;1"].createInstance(Ci.nsIFileOutputStream);
-  console.log("stream: ",stream);
   stream.init(aFile, 0x04 | 0x08 | 0x20, 0600, 0); // readwrite, create, truncate           
   stream.write(respBody, respBody.length);    
   if (stream instanceof Ci.nsISafeOutputStream) {
     stream.finish();
-    console.log("finish stream ");
   } else {
     stream.close();
-    console.log("close stream ");
   };
   return '~' + name
 }

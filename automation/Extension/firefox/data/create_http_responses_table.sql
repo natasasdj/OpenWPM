@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS http_responses(
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   crawl_id INTEGER NOT NULL,
   visit_id INTEGER NOT NULL,
+  visit_domain_id INTEGER,
   url TEXT NOT NULL,
   method TEXT NOT NULL,
   referrer TEXT NOT NULL,

@@ -205,7 +205,7 @@ class Browser:
 
     def shutdown_browser(self, during_init):
         """ Runs the closing tasks for this Browser/BrowserManager """
-        #time.sleep(200)
+        #time.sleep(100)
         # Join command thread
         if self.command_thread is not None:
             self.logger.debug("BROWSER %i: Joining command thread" % self.crawl_id)

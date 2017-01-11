@@ -1,10 +1,10 @@
 from automation import TaskManager, CommandSequence
-
+from automation.Commands import browser_commands
 # The list of sites that we wish to crawl
-NUM_BROWSERS = 3
-#sites = ['http://www.google.com']
-sites = ['http://www.blic.rs']
-
+NUM_BROWSERS = 2
+sites = ['http://www.google.com','http://www.blic.rs','http://www.yachoo.com','http://facebook.com']
+#sites = ['http://www.blic.rs']
+sites = ['http://www.google.com']
 # Loads the manager preference and 3 copies of the default browser dictionaries
 manager_params, browser_params = TaskManager.load_default_params(NUM_BROWSERS)
 
@@ -27,18 +27,29 @@ manager_params['log_directory'] = '~/projects/test'
 manager = TaskManager.TaskManager(manager_params, browser_params)
 
 # Visits the sites with all browsers simultaneously
+
 for site in sites:
-    command_sequence = CommandSequence.CommandSequence(site)
+    print(site)
+    command_sequence = CommandSequence.CommandSequence(site,reset=True)
 
     # Start by visiting the page
     #command_sequence.get(sleep=0, timeout=60)
-    command_sequence.browse(sleep=0, num_links=3, timeout=60)
+    command_sequence.browse2(sleep=0, num_links=3, timeout=60)
     #command_sequence.browse_links(timeout=30)
 
     # dump_profile_cookies/dump_flash_cookies closes the current tab.
     #command_sequence.dump_profile_cookies(120)
 
-    manager.execute_command_sequence(command_sequence, index=None) # index = None = first come / first serve
+    manager.execute_command_sequence(command_sequence, index=None)
+"""
+        parses command type and issues command(s) to the proper browser
+        <index> specifies the type of command this is:
+        = None  -> first come, first serve
+        =  #    -> index of browser to send command to
+        = *     -> sends command to all browsers
+        = **    -> sends command to all browsers (synchronized)
+""" 
+
 
 # Shuts down the browsers and waits for the data to finish logging
 manager.close()

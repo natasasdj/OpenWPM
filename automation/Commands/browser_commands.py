@@ -76,7 +76,7 @@ def get_website(url, sleep, visit_id, webdriver, proxy_queue, browser_params, ex
     <proxy_queue> is queue for sending the proxy the current first party site
     """
 
-    #tab_restart_browser(webdriver)
+    tab_restart_browser(webdriver)
     main_handle = webdriver.current_window_handle
 
     # sends top-level domain to proxy and extension (if enabled)
@@ -265,7 +265,7 @@ def browse_website2(url, num_links, sleep, visit_id, webdriver, proxy_queue,
 
  
     # Then visit all pages withing the same domain 
-'''
+
     links = get_intra_links(webdriver, url)
     links_url = []
     for link in links:
@@ -294,7 +294,7 @@ def browse_website2(url, num_links, sleep, visit_id, webdriver, proxy_queue,
         logger.info("BROWSER %i, SITE %i %i, START get" % (browser_params['crawl_id'],visit_id,visit_domain_id))
         get_website2(link_url, sleep, webdriver) 
         logger.info("BROWSER %i, SITE %i %i, END get" % (browser_params['crawl_id'], visit_id,visit_domain_id))
-'''
+
 
 '''
    while True:

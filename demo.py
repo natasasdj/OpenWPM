@@ -7,7 +7,7 @@ from urllib import urlopen
 from automation import TaskManager, CommandSequence
 
 # The list of sites that we wish to crawl
-NUM_BROWSERS = 10
+NUM_BROWSERS = 50
 
 data_input_dir = os.getcwd() + '/data/input/'
 alexa_file_name = data_input_dir + 'top-1m.csv'
@@ -64,7 +64,7 @@ with open(alexa_file_name, 'r') as f:
     for i in range(100):
         site = 'http://www.' + r.next()[1]
         print site
-        command_sequence = CommandSequence.CommandSequence(site,reset=False)
+        command_sequence = CommandSequence.CommandSequence(site,reset=True)
         command_sequence.browse2(sleep=0, num_links=3, timeout=10)
         manager.execute_command_sequence(command_sequence, index=None)
 """

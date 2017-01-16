@@ -5,7 +5,8 @@ import os
 import time
 from timeit import default_timer as timer
 
-url = "http://www.yahoo.com"
+#url = "http://www.yahoo.com"
+url = "http://www.youtube.com"
 root_dir = os.path.dirname(__file__)
 fp = webdriver.FirefoxProfile()
 fb = FirefoxBinary(root_dir  + "firefox-bin/firefox")

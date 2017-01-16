@@ -32,10 +32,12 @@ CREATE TABLE IF NOT EXISTS xpath (
     UNIQUE(name, url));
 
 CREATE TABLE IF NOT EXISTS site_visits (
-    visit_id INTEGER PRIMARY KEY,
+    visit_id INTEGER not NULL,
+    visit_domain_id INTEGER not NULL,
     crawl_id INTEGER NOT NULL,
     site_url VARCHAR(500) NOT NULL,
-    FOREIGN KEY(crawl_id) REFERENCES crawl(id));
+    FOREIGN KEY(crawl_id) REFERENCES crawl(id),
+    PRIMARY KEY (visit_id, visit_domain_id));
 
 /* Proxy Tables */
 

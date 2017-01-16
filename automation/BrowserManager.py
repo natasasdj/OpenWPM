@@ -73,6 +73,7 @@ class Browser:
         sets up the BrowserManager and gets the process id, browser pid and, if applicable, screen pid
         loads associated user profile if necessary
         """
+        self.logger.info("BROWSER %i: Browser manager launch" % self.crawl_id) 
         # if this is restarting from a crash, update the tar location
         # to be a tar of the crashed browser's history
         if self.current_profile_path is not None:
@@ -161,6 +162,7 @@ class Browser:
         kill and restart the two worker processes
         <clear_profile> marks whether we want to wipe the old profile
         """
+        self.logger.info("BROWSER %i: Browser manager restart" % self.crawl_id) 
         if self.is_fresh: # Return success if browser is fresh
             return True
 

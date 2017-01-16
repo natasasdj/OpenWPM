@@ -228,14 +228,14 @@ function logWithResponseBody(respEvent, update) {
   respEvent.subject.QueryInterface(Ci.nsITraceableChannel);
   newListener.originalListener = respEvent.subject.setNewListener(newListener);
   newListener.promiseDone.then(function() {    
-  var respBody = newListener.responseBody; // get response body as a string
-  fileName = loggingDB.writeRespBodyIntoFile(respBody);
-  console.log("fileName ", fileName)
-  update["file_name"] = fileName;
-  loggingDB.executeSQL(loggingDB.createInsert("http_responses", update), true);
+    var respBody = newListener.responseBody; // get response body as a string
+    fileName = loggingDB.writeRespBodyIntoFile(respBody);
+    //console.log("fileName http", fileName);
+    update["file_name"] = fileName;
+    loggingDB.executeSQL(loggingDB.createInsert("http_responses", update), true);
+    console.log("update ", update); 
   }, function(aReason) {
     console.error("Unable to retrieve response body.",aReason);
-    update["content_hash"] = "<error>";
     loggingDB.executeSQL(loggingDB.createInsert("http_responses", update), true);
   }).catch(function(aCatch) {
     console.error('Unable to retrieve response body.',
@@ -305,6 +305,53 @@ function isJS2(httpChannel) {
   return false;
 }
 
+
+function isImage(httpChannel) {
+  // Return true if this channel is loading javascript
+  // We rely mostly on the content policy type to filter responses
+  // and fall back to the URI and content type string for types that can
+  // load various resource types.
+  // See: http://searchfox.org/mozilla-central/source/dom/base/nsIContentPolicyBase.idl
+  var isImg=false;
+  var contentPolicyType = httpChannel.loadInfo.externalContentPolicyType;
+  var contentType = httpChannel.getResponseHeader("Content-Type");
+  var contentLength = httpChannel.getResponseHeader("Content-Length");
+  console.log("Content-Type: ", contentType);
+  console.log("Content-Length: ", contentLength, "type: ", typeof(contentLength));
+/*
+  if (contentPolicyType == 3){ // image
+    console.log( "image 111");
+    //if (contentType.toLowerCase().includes('image'))
+    //    consol.log ("image 333")
+    return true};
+  */
+//if (contentPolicyType == 21) 
+  //  console.log(print "image 222"
+  //  return true;  
+  if (contentType.toLowerCase().includes('image') && parseInt(contentLength) < 100000 ){
+    console.log("image 444")
+    return true;
+  };
+  console.log( "no image no image");
+  return false;
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Instrument HTTP responses
 var httpResponseHandler = function(respEvent, isCached, crawlID, saveJavascript) {
   var httpChannel = respEvent.subject.QueryInterface(Ci.nsIHttpChannel);
@@ -360,12 +407,15 @@ var httpResponseHandler = function(respEvent, isCached, crawlID, saveJavascript)
   }});
   update["headers"] = JSON.stringify(headers);
 
-  if (saveJavascript && isJS(httpChannel)) {
+  if (saveJavascript && isImage(httpChannel)) {
     logWithResponseBody(respEvent, update);
+    console.log("image image image")
   } else {
-    loggingDB.executeSQL(loggingDB.createInsert("http_responses", update), true);
+    //loggingDB.executeSQL(loggingDB.createInsert("http_responses", update), true);
   }
+
 };
+
 
 /*
  * Attach handlers to event monitor

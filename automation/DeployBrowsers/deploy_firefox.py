@@ -143,7 +143,7 @@ def deploy_firefox(status_queue, browser_params, manager_params, crash_recovery)
     fb = FirefoxBinary(root_dir  + "/../../firefox-bin/firefox")
     driver = webdriver.Firefox(firefox_profile=fp, firefox_binary=fb)
     status_queue.put(('STATUS','Browser Launched',(int(driver.binary.process.pid), profile_settings)))
-
+    
     # set window size
     driver.set_window_size(*profile_settings['screen_res'])
 

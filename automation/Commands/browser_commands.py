@@ -19,13 +19,8 @@ from utils.webdriver_extensions import scroll_down, wait_until_loaded, get_intra
 NUM_MOUSE_MOVES = 10  # number of times to randomly move the mouse as part of bot mitigation
 RANDOM_SLEEP_LOW = 1  # low end (in seconds) for random sleep times between page loads (bot mitigation)
 RANDOM_SLEEP_HIGH = 7  # high end (in seconds) for random sleep times between page loads (bot mitigation)
-manager = None
 
-def set_manager(m):
-# Connect to logger
-    #logger = loggingclient(*manager_params['logger_address'])
-    manager = m
-    print("Set manager ", type(manager), ' ', manager.next_visit_id)
+
 
 def bot_mitigation(webdriver):
     """ performs three optional commands for bot-detection mitigation when getting a site """
@@ -81,7 +76,7 @@ def get_website(url, sleep, visit_id, webdriver, proxy_queue, browser_params, ex
     <proxy_queue> is queue for sending the proxy the current first party site
     """
 
-    tab_restart_browser(webdriver)
+    #tab_restart_browser(webdriver)
     main_handle = webdriver.current_window_handle
 
     # sends top-level domain to proxy and extension (if enabled)
@@ -124,55 +119,7 @@ def get_website(url, sleep, visit_id, webdriver, proxy_queue, browser_params, ex
         bot_mitigation(webdriver)
 
 
-def get_website2(url, sleep, visit_id, visit_domain_id, webdriver, proxy_queue, browser_params, extension_socket):
-    """
-    goes to <url> using the given <webdriver> instance
-    <proxy_queue> is queue for sending the proxy the current first party site
-    """
 
-    tab_restart_browser(webdriver)
-    main_handle = webdriver.current_window_handle
-
-    # sends top-level domain to proxy and extension (if enabled)
-    # then, waits for it to finish marking traffic in proxy before moving to new site
-    if proxy_queue is not None:
-        proxy_queue.put(visit_id)
-        while not proxy_queue.empty():
-            time.sleep(0.001)
-    if extension_socket is not None:
-        visit={'visit_id':visit_id,'visit_domain_id':visit_domain_id}
-        print("visit",visit)
-        extension_socket.send(visit)
-
-    # Execute a get through selenium
-    try:
-        webdriver.get(url)
-    except TimeoutException:
-        pass
-
-    # Sleep after get returns
-    time.sleep(sleep)
-
-    # Close modal dialog if exists
-    try:
-        WebDriverWait(webdriver, .5).until(EC.alert_is_present())
-        alert = webdriver.switch_to_alert()
-        alert.dismiss()
-        time.sleep(1)
-    except TimeoutException:
-        pass
-
-    # Close other windows (popups or "tabs")
-    windows = webdriver.window_handles
-    if len(windows) > 1:
-        for window in windows:
-            if window != main_handle:
-                webdriver.switch_to_window(window)
-                webdriver.close()
-        webdriver.switch_to_window(main_handle)
-
-    if browser_params['bot_mitigation']:
-        bot_mitigation(webdriver)
 
 def extract_links(webdriver, browser_params, manager_params):
     link_elements = webdriver.find_elements_by_tag_name('a')
@@ -204,7 +151,6 @@ def extract_links(webdriver, browser_params, manager_params):
 def browse_links(webdriver, browser_params, manager_params):
     link_elements = webdriver.find_elements_by_tag_name('a')
     link_urls = set(element.get_attribute("href") for element in link_elements)
-    print('nesto\n')
     # Connect to logger
     logger = loggingclient(*manager_params['logger_address'])
 
@@ -220,7 +166,7 @@ def browse_links(webdriver, browser_params, manager_params):
     for link in links:
         logger.info("BROWSER %i: visiting internal link %s" % (browser_params['crawl_id'], link.get_attribute("href")))
     
-def browse_website2(url, num_links, sleep, visit_id, webdriver, proxy_queue,
+def browse_website3(url, num_links, sleep, visit_id, webdriver, proxy_queue,
                    browser_params, manager_params, extension_socket):
     """Calls get_website before visiting <num_links> present on the page.
 
@@ -228,25 +174,166 @@ def browse_website2(url, num_links, sleep, visit_id, webdriver, proxy_queue,
     be the site_url of the original page and NOT the url of the links visited.
     """
     # First get the site
-    #print("Browse Website 2, manager.next_visit_id ", type(manager))
     visit_domain_id = 1
+    sock = clientsocket()
+    sock.connect(*manager_params['aggregator_address'])
+    
     get_website2(url, sleep, visit_id, visit_domain_id, webdriver, proxy_queue, browser_params, extension_socket)
     
     # Connect to logger
     logger = loggingclient(*manager_params['logger_address'])
  
     # Then visit a few subpages
-    for i in range(num_links):
+    
+    
+    
+    for i in range(num_links):       
         links = get_intra_links(webdriver, url)
         links = filter(lambda x: x.is_displayed() == True, links)
         if len(links) == 0:
             break
-        r = int(random.random()*len(links))
+        r = int(random.random()*len(links))  
         link = links[r].get_attribute("href")       
         visit_domain_id += 1  
         logger.info("BROWSER %i, visit id %i visit domain id %i: visiting internal link %s" % (browser_params['crawl_id'], visit_id,visit_domain_id,link))
-        get_website2(link, sleep, visit_id, visit_domain_id,webdriver, proxy_queue, browser_params, extension_socket)
+        sock.send(("INSERT INTO site_visits (visit_id, visit_domain_id, crawl_id, site_url) VALUES (?,?,?,?)",
+                        (visit_id, visit_domain_id,browser_params['crawl_id'], link)))
+        get_website2(link, sleep, webdriver, proxy_queue, browser_params)
 
+def get_website2(url, sleep, webdriver):
+    """
+    goes to <url> using the given <webdriver> instance
+    """
+    print "111"
+    tab_restart_browser(webdriver)
+    main_handle =webdriver.current_window_handle
+
+    # Execute a get through selenium
+    print "222"
+    try:
+        webdriver.get(url)
+    except TimeoutException:
+        pass
+    print "333"
+
+    # Sleep after get returns 
+    print("sleep:",sleep)
+    time.sleep(sleep)
+'''
+    # Close modal dialog if exists
+    try:
+        WebDriverWait(webdriver, 0.0005).until(EC.alert_is_present())
+        alert = webdriver.switch_to_alert()
+        alert.dismiss()
+        time.sleep(0.0001)
+    except TimeoutException:
+        pass
+
+    # Close other windows (popups or "tabs")
+    windows = webdriver.window_handles
+    if len(windows) > 1:
+        for window in windows:
+            if window != main_handle:
+                webdriver.switch_to_window(window)
+                webdriver.close()
+        webdriver.switch_to_window(main_handle)
+    print "444"
+'''
+   
+def browse_website2(url, num_links, sleep, visit_id, webdriver, proxy_queue,
+                   browser_params, manager_params, extension_socket):
+    """Calls get_website before visiting <num_links> present on the page.
+
+    Note: the site_url in the site_visits table for the links visited will
+    be the site_url of the original page and NOT the url of the links visited.
+    """
+    # Connect to logger
+    logger = loggingclient(*manager_params['logger_address'])
+
+    # First get the site
+    visit_domain_id = 1
+    sock = clientsocket()
+    sock.connect(*manager_params['aggregator_address'])
+        
+    
+    if extension_socket is not None:
+        visit={'visit_id':visit_id,'visit_domain_id':visit_domain_id}
+        extension_socket.send(visit)
+    logger.info("BROWSER %i, SITE %i %i, START get" % (browser_params['crawl_id'],visit_id,visit_domain_id))
+    get_website2(url, sleep, webdriver)
+    logger.info("BROWSER %i, SITE %i %i, END get" % (browser_params['crawl_id'], visit_id,visit_domain_id))
+
+ 
+    # Then visit all pages withing the same domain 
+'''
+    links = get_intra_links(webdriver, url)
+    links_url = []
+    for link in links:
+        l = str(link.get_attribute("href" ))
+        print "1:" + l
+        if l in links_url:
+            continue
+        links_url.append(str(link.get_attribute("href" ))) 
+    print links_url 
+ 
+    #links = filter(lambda x: x.is_displayed() == True, links)
+    #for link in links:
+    #    print "2:" + link.get_attribute("href")
+    #    print len(links)
+    #while (len(links)>0):     
+        #link = links[0].get_attribute("href")
+    #i=0
+    for link_url in links_url:
+        visit_domain_id += 1  
+        logger.info("BROWSER %i, visit id %i visit domain id %i: link url: %s" % (browser_params['crawl_id'], visit_id,visit_domain_id,link_url))
+        sock.send(("INSERT INTO site_visits (visit_id, visit_domain_id, crawl_id, site_url) VALUES (?,?,?,?)",
+                        (visit_id, visit_domain_id,browser_params['crawl_id'], link_url)))       
+        if extension_socket is not None:
+            visit={'visit_id':visit_id,'visit_domain_id':visit_domain_id}
+            extension_socket.send(visit)
+        logger.info("BROWSER %i, SITE %i %i, START get" % (browser_params['crawl_id'],visit_id,visit_domain_id))
+        get_website2(link_url, sleep, webdriver) 
+        logger.info("BROWSER %i, SITE %i %i, END get" % (browser_params['crawl_id'], visit_id,visit_domain_id))
+'''
+
+'''
+   while True:
+        links = get_intra_links(webdriver, url) 
+        links = filter(lambda x: x.is_displayed() == True, links)
+        if len(links) == 0 or len(links)==i:
+           break
+        print "3 i="+str(i)+" len links "+str(len(links))
+        link = links[i].get_attribute("href")
+        print "4 i="+str(i)
+        visit_domain_id += 1  
+        i += 1
+        logger.info("BROWSER %i, visit id %i visit domain id %i: visiting internal link %s" % (browser_params['crawl_id'], visit_id,visit_domain_id,link))
+        sock.send(("INSERT INTO site_visits (visit_id, visit_domain_id, crawl_id, site_url) VALUES (?,?,?,?)",
+                        (visit_id, visit_domain_id,browser_params['crawl_id'], link)))       
+        if extension_socket is not None:
+            visit={'visit_id':visit_id,'visit_domain_id':visit_domain_id}
+            extension_socket.send(visit)
+        logger.info("BROWSER %i, SITE %i %i, START get" % (browser_params['crawl_id'],visit_id,visit_domain_id))
+        get_website2(link, sleep, webdriver) 
+        logger.info("BROWSER %i, SITE %i %i, END get" % (browser_params['crawl_id'], visit_id,visit_domain_id))
+        #links = get_intra_links(webdriver, url)
+        #links = filter(lambda x: x.is_displayed() == True, links)   
+          '''
+
+
+
+'''
+        try: 
+            link.click()            
+            wait_until_loaded(webdriver, 300)
+            time.sleep(max(1,sleep))
+            webdriver.back()
+            wait_until_loaded(webdriver,300)
+        except Exception:
+            pass
+        
+
+'''
 
 
 def browse_website(url, num_links, sleep, visit_id, webdriver, proxy_queue,
@@ -257,6 +344,7 @@ def browse_website(url, num_links, sleep, visit_id, webdriver, proxy_queue,
     be the site_url of the original page and NOT the url of the links visited.
     """
     # First get the site
+    
     get_website(url, sleep, visit_id, webdriver, proxy_queue, browser_params, extension_socket)
 
     # Connect to logger

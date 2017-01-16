@@ -23,7 +23,6 @@ def execute_command(command, webdriver, proxy_queue, browser_settings, browser_p
                                         visit_id=command[4], webdriver=webdriver,
                                         proxy_queue=proxy_queue, browser_params=browser_params,
                                         manager_params=manager_params, extension_socket=extension_socket)
-        print("Command Executor")
 
     if command[0] == 'DUMP_FLASH_COOKIES':
         browser_commands.dump_flash_cookies(start_time=command[1], visit_id=command[2],
@@ -48,7 +47,6 @@ def execute_command(command, webdriver, proxy_queue, browser_settings, browser_p
         browser_commands.extract_links(webdriver, browser_params, manager_params)
 
     if command[0] == 'BROWSE_LINKS':
-        print('nesto2\n')
         browser_commands.browse_links(webdriver, browser_params, manager_params)
 
     if command[0] == 'SAVE_SCREENSHOT':

@@ -12,7 +12,7 @@ NUM_BROWSERS = 10
 data_input_dir = os.getcwd() + '/data/input/'
 alexa_file_name = data_input_dir + 'top-1m.csv'
 
-'''
+
 
 ALEXA_DATA_URL = 'http://s3.amazonaws.com/alexa-static/top-1m.csv.zip'
 
@@ -26,7 +26,7 @@ with open(alexa_file_name, 'w') as alexa_file:
         alexa_file.writelines(line)
 
 
-'''
+
 
 
 #sites = ['http://www.google.com','http://www.blic.rs','http://www.yachoo.com','http://facebook.com']

@@ -146,5 +146,5 @@ def deploy_firefox(status_queue, browser_params, manager_params, crash_recovery)
     
     # set window size
     driver.set_window_size(*profile_settings['screen_res'])
-
+    print driver.capabilities['version']
     return driver, browser_profile_path, profile_settings

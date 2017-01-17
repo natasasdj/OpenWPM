@@ -204,20 +204,20 @@ def get_website2(url, sleep, webdriver):
     """
     goes to <url> using the given <webdriver> instance
     """
-    print "111"
-    tab_restart_browser(webdriver)
-    main_handle =webdriver.current_window_handle
+    #print "111"
+ #   tab_restart_browser(webdriver)
+    main_handle = webdriver.current_window_handle
 
     # Execute a get through selenium
-    print "222"
+    #print "222"
     try:
         webdriver.get(url)
     except TimeoutException:
         pass
-    print "333"
+    #print "333"
 
     # Sleep after get returns 
-    print("sleep:",sleep)
+    #print("sleep:",sleep)
     time.sleep(sleep)
 '''
     # Close modal dialog if exists
@@ -237,7 +237,6 @@ def get_website2(url, sleep, webdriver):
                 webdriver.switch_to_window(window)
                 webdriver.close()
         webdriver.switch_to_window(main_handle)
-    print "444"
 '''
    
 def browse_website2(url, num_links, sleep, visit_id, webdriver, proxy_queue,
@@ -259,9 +258,9 @@ def browse_website2(url, num_links, sleep, visit_id, webdriver, proxy_queue,
     if extension_socket is not None:
         visit={'visit_id':visit_id,'visit_domain_id':visit_domain_id}
         extension_socket.send(visit)
-    logger.info("BROWSER %i, SITE %i %i, START get" % (browser_params['crawl_id'],visit_id,visit_domain_id))
+    #logger.info("BROWSER %i, SITE %i %i, START get" % (browser_params['crawl_id'],visit_id,visit_domain_id))
     get_website2(url, sleep, webdriver)
-    logger.info("BROWSER %i, SITE %i %i, END get" % (browser_params['crawl_id'], visit_id,visit_domain_id))
+    #logger.info("BROWSER %i, SITE %i %i, END get" % (browser_params['crawl_id'], visit_id,visit_domain_id))
 
  
     # Then visit all pages withing the same domain 
@@ -270,11 +269,11 @@ def browse_website2(url, num_links, sleep, visit_id, webdriver, proxy_queue,
     links_url = []
     for link in links:
         l = str(link.get_attribute("href" ))
-        print "1:" + l
+#        print "1:" + l
         if l in links_url:
             continue
         links_url.append(str(link.get_attribute("href" ))) 
-    print links_url 
+#    print links_url 
  
     #links = filter(lambda x: x.is_displayed() == True, links)
     #for link in links:
@@ -291,9 +290,9 @@ def browse_website2(url, num_links, sleep, visit_id, webdriver, proxy_queue,
         if extension_socket is not None:
             visit={'visit_id':visit_id,'visit_domain_id':visit_domain_id}
             extension_socket.send(visit)
-        logger.info("BROWSER %i, SITE %i %i, START get" % (browser_params['crawl_id'],visit_id,visit_domain_id))
+       # logger.info("BROWSER %i, SITE %i %i, START get" % (browser_params['crawl_id'],visit_id,visit_domain_id))
         get_website2(link_url, sleep, webdriver) 
-        logger.info("BROWSER %i, SITE %i %i, END get" % (browser_params['crawl_id'], visit_id,visit_domain_id))
+       # logger.info("BROWSER %i, SITE %i %i, END get" % (browser_params['crawl_id'], visit_id,visit_domain_id))
 
 
 '''

@@ -5,6 +5,7 @@ import zipfile
 import cStringIO
 from urllib import urlopen
 from automation import TaskManager, CommandSequence
+from timeit import default_timer as timer
 
 # The list of sites that we wish to crawl
 NUM_BROWSERS = 50
@@ -58,14 +59,14 @@ manager_params['log_directory'] = os.getcwd()+'/data/output'
 manager = TaskManager.TaskManager(manager_params, browser_params)
 
 # Visits the sites with all browsers simultaneously
-
+start = timer()
+print("Start time: ", start)
 with open(alexa_file_name, 'r') as f:
-    r = csv.reader(f, delimiter=',')
-    for i in range(100):
+    r = csv.reader(f, delimiter=',')    
+    for i in range(200):
         site = 'http://www.' + r.next()[1]
-        print site
         command_sequence = CommandSequence.CommandSequence(site,reset=True)
-        command_sequence.browse2(sleep=0, num_links=3, timeout=10)
+        command_sequence.browse2(sleep=0, num_links=3, timeout=60)
         manager.execute_command_sequence(command_sequence, index=None)
 """
         parses command type and issues command(s) to the proper browser
@@ -74,10 +75,11 @@ with open(alexa_file_name, 'r') as f:
         =  #    -> index of browser to send command to
         = *     -> sends command to all browsers
         = **    -> sends command to all browsers (synchronized)
-""" 
-
+"""
 
 # Shuts down the browsers and waits for the data to finish logging
 manager.close()
-
+end = timer()
+print("End time: ", end)
+print("Response time:", end - start)
 

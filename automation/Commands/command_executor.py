@@ -9,7 +9,7 @@ def execute_command(command, webdriver, proxy_queue, browser_settings, browser_p
     the only imports in this file should be imports to helper libraries
     """
     if command[0] == 'GET':
-        browser_commands.get_website(url=command[1], sleep=command[2], visit_id=command[3],
+        browser_commands.get_website2(url=command[1], sleep=command[2], visit_id=command[3],
                                      webdriver=webdriver, proxy_queue=proxy_queue,
                                      browser_params=browser_params, extension_socket=extension_socket)
 
@@ -19,15 +19,17 @@ def execute_command(command, webdriver, proxy_queue, browser_settings, browser_p
                                         proxy_queue=proxy_queue, browser_params=browser_params,
                                         manager_params=manager_params, extension_socket=extension_socket)
     if command[0] == 'BROWSE2':
-        browser_commands.browse_website2(url=command[1], num_links=command[2], sleep=command[3],
-                                        visit_id=command[4], webdriver=webdriver,
-                                        proxy_queue=proxy_queue, browser_params=browser_params,
+        browser_commands.browse_website2(url=command[1], file_name=command[2], sleep=command[3], visit_id=command[4],
+                                         webdriver=webdriver, proxy_queue=proxy_queue, browser_params=browser_params,
+                                        manager_params=manager_params, extension_socket=extension_socket)
+    if command[0] == 'GET2':
+        browser_commands.get_website2(url=command[1], link_no=command[2], sleep=command[3],visit_id=command[4], 
+                                        webdriver=webdriver, proxy_queue=proxy_queue, browser_params=browser_params,
                                         manager_params=manager_params, extension_socket=extension_socket)
 
     if command[0] == 'DUMP_FLASH_COOKIES':
         browser_commands.dump_flash_cookies(start_time=command[1], visit_id=command[2],
-                                            webdriver=webdriver, browser_params=browser_params,
-                                            manager_params=manager_params)
+                                            webdriver=webdriver, browser_params=browser_params,manager_params=manager_params)
 
     if command[0] == 'DUMP_PROFILE_COOKIES':
         browser_commands.dump_profile_cookies(start_time=command[1], visit_id=command[2],

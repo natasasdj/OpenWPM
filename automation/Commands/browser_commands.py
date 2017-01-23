@@ -4,9 +4,12 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import MoveTargetOutOfBoundsException
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.action_chains import ActionChains
+from httplib import BadStatusLine
 import os
 import random
 import time
+import multiprocessing
+from timeit import default_timer as timer
 
 from ..SocketInterface import clientsocket
 from ..MPLogger import loggingclient
@@ -119,8 +122,6 @@ def get_website(url, sleep, visit_id, webdriver, proxy_queue, browser_params, ex
         bot_mitigation(webdriver)
 
 
-
-
 def extract_links(webdriver, browser_params, manager_params):
     link_elements = webdriver.find_elements_by_tag_name('a')
     link_urls = set(element.get_attribute("href") for element in link_elements)
@@ -183,8 +184,7 @@ def browse_website3(url, num_links, sleep, visit_id, webdriver, proxy_queue,
     # Connect to logger
     logger = loggingclient(*manager_params['logger_address'])
  
-    # Then visit a few subpages
-    
+    # Then visit a few subpages    
     
     
     for i in range(num_links):       
@@ -200,32 +200,45 @@ def browse_website3(url, num_links, sleep, visit_id, webdriver, proxy_queue,
                         (visit_id, visit_domain_id,browser_params['crawl_id'], link)))
         get_website2(link, sleep, webdriver, proxy_queue, browser_params)
 
-def get_website2(url, sleep, webdriver):
+
+def get_website1(url, sleep, webdriver, sock, visit_id, visit_domain_id):
     """
     goes to <url> using the given <webdriver> instance
     """
     #print "111"
- #   tab_restart_browser(webdriver)
-    main_handle = webdriver.current_window_handle
-
+    try:
+        tab_restart_browser(webdriver)
+        main_handle = webdriver.current_window_handle
+    except Exception as e:
+        print("1 url and exception: ",url," ",e)
+        pass
     # Execute a get through selenium
     #print "222"
+
     try:
+        start = timer()
+        if visit_domain_id == 3:
+            raise BadStatusLine
         webdriver.get(url)
-    except TimeoutException:
+        end = timer()       
+        #response_time = int(round(end - start))
+        response_time = end - start
+        sock.send(("UPDATE site_visits SET response_time = ? WHERE visit_id = ? AND visit_domain_id = ?", (response_time, visit_id, visit_domain_id)))
+    except Exception as e:
+        print("2 url:",url,", exception:",e)
         pass
     #print "333"
-
     # Sleep after get returns 
     #print("sleep:",sleep)
     time.sleep(sleep)
+
 '''
     # Close modal dialog if exists
     try:
-        WebDriverWait(webdriver, 0.0005).until(EC.alert_is_present())
+        WebDriverWait(webdriver, 0.5).until(EC.alert_is_present())
         alert = webdriver.switch_to_alert()
         alert.dismiss()
-        time.sleep(0.0001)
+        time.sleep(1)
     except TimeoutException:
         pass
 
@@ -238,8 +251,18 @@ def get_website2(url, sleep, webdriver):
                 webdriver.close()
         webdriver.switch_to_window(main_handle)
 '''
-   
-def browse_website2(url, num_links, sleep, visit_id, webdriver, proxy_queue,
+
+def get_website3(url, sleep, webdriver, sock, visit_id, visit_domain_id):   
+    p = multiprocessing.Process(target=get_website1, name="get_website1", args=(url, sleep, webdriver, sock, visit_id, visit_domain_id))
+    p.start()
+    p.join(15)
+    if p.is_alive():
+       print "get_website2 is running very long ... let's kill it..."
+    p.terminate()
+    p.join()
+    
+
+def browse_website2a(url, num_links, sleep, visit_id, webdriver, proxy_queue,
                    browser_params, manager_params, extension_socket):
     """Calls get_website before visiting <num_links> present on the page.
 
@@ -254,85 +277,179 @@ def browse_website2(url, num_links, sleep, visit_id, webdriver, proxy_queue,
     sock = clientsocket()
     sock.connect(*manager_params['aggregator_address'])
         
-    
+    start1 = timer()
     if extension_socket is not None:
         visit={'visit_id':visit_id,'visit_domain_id':visit_domain_id}
         extension_socket.send(visit)
-    #logger.info("BROWSER %i, SITE %i %i, START get" % (browser_params['crawl_id'],visit_id,visit_domain_id))
-    get_website2(url, sleep, webdriver)
-    #logger.info("BROWSER %i, SITE %i %i, END get" % (browser_params['crawl_id'], visit_id,visit_domain_id))
-
- 
+    
+    get_website2(url, sleep, webdriver,sock,visit_id, visit_domain_id)
+   
+    end1 = timer()
+    resp_time = end1-start1
+    sock.send(("UPDATE site_visits SET total_response_time = ? WHERE visit_id = ? AND visit_domain_id = ?", (resp_time, visit_id, visit_domain_id)))
     # Then visit all pages withing the same domain 
 
     links = get_intra_links(webdriver, url)
+    logger.info("BROWSER %i, Number of links url: %i" % (browser_params['crawl_id'], len(links)))
+    if len(links) == 0:
+        return
     links_url = []
     for link in links:
-        l = str(link.get_attribute("href" ))
+        l = str(link.get_attribute("href" )).strip()
 #        print "1:" + l
         if l in links_url:
             continue
-        links_url.append(str(link.get_attribute("href" ))) 
-#    print links_url 
- 
-    #links = filter(lambda x: x.is_displayed() == True, links)
-    #for link in links:
-    #    print "2:" + link.get_attribute("href")
-    #    print len(links)
-    #while (len(links)>0):     
-        #link = links[0].get_attribute("href")
-    #i=0
+        links_url.append(l) 
     for link_url in links_url:
         visit_domain_id += 1  
         logger.info("BROWSER %i, visit id %i visit domain id %i: link url: %s" % (browser_params['crawl_id'], visit_id,visit_domain_id,link_url))
+        start2 = timer()
         sock.send(("INSERT INTO site_visits (visit_id, visit_domain_id, crawl_id, site_url) VALUES (?,?,?,?)",
                         (visit_id, visit_domain_id,browser_params['crawl_id'], link_url)))       
         if extension_socket is not None:
             visit={'visit_id':visit_id,'visit_domain_id':visit_domain_id}
             extension_socket.send(visit)
        # logger.info("BROWSER %i, SITE %i %i, START get" % (browser_params['crawl_id'],visit_id,visit_domain_id))
-        get_website2(link_url, sleep, webdriver) 
+        get_website2(link_url, sleep, webdriver,sock,visit_id, visit_domain_id) 
        # logger.info("BROWSER %i, SITE %i %i, END get" % (browser_params['crawl_id'], visit_id,visit_domain_id))
+        logger.info("BROWSER %i, Nastavljam dalje: %i" % (browser_params['crawl_id'], len(links)))
+        end2 = timer()
+        resp_time = end2-start2
+        sock.send(("UPDATE site_visits SET total_response_time = ? WHERE visit_id = ? AND visit_domain_id = ?", (resp_time, visit_id, visit_domain_id)))
+
+def get_website2(url, link_no, sleep, visit_id, webdriver, proxy_queue,browser_params,manager_params,extension_socket):
+    """
+    goes to <url> using the given <webdriver> instance
+    <proxy_queue> is queue for sending the proxy the current first party site
+    """
+    start1 = timer()
+    tab_restart_browser(webdriver)
+    main_handle = webdriver.current_window_handle
+    if extension_socket is not None:
+        visit={'visit_id':visit_id,'visit_domain_id':link_no}
+        extension_socket.send(visit)
+    # sends top-level domain to proxy and extension (if enabled)
+    # then, waits for it to finish marking traffic in proxy before moving to new site
+    sock = clientsocket()
+    sock.connect(*manager_params['aggregator_address'])
+    # Execute a get through selenium
+    try:
+        start = timer()
+        webdriver.get(url)
+        end = timer()       
+        response_time = end - start
+        sock.send(("UPDATE site_visits SET response_time = ? WHERE visit_id = ? AND visit_domain_id = ?", (response_time, visit_id, link_no)))
+    except TimeoutException:
+        pass
+    
+    # Sleep after get returns
+    time.sleep(sleep)
+
+    # Close modal dialog if exists
+    try:
+        WebDriverWait(webdriver, .5).until(EC.alert_is_present())
+        alert = webdriver.switch_to_alert()
+        alert.dismiss()
+        time.sleep(1)
+    except TimeoutException:
+        pass
+
+    # Close other windows (popups or "tabs")
+    windows = webdriver.window_handles
+    if len(windows) > 1:
+        for window in windows:
+            if window != main_handle:
+                webdriver.switch_to_window(window)
+                webdriver.close()
+        webdriver.switch_to_window(main_handle)
+    end1 = timer()       
+    response_time = end1 - start1
+    sock.send(("UPDATE site_visits SET total_response_time = ? WHERE visit_id = ? AND visit_domain_id = ?", (response_time, visit_id, link_no)))
+    sock.close()
 
 
+def browse_website2(url, file_name, sleep, visit_id, webdriver, proxy_queue,
+                   browser_params, manager_params, extension_socket):
+    """Calls get_website before visiting <num_links> present on the page.
+
+    Note: the site_url in the site_visits table for the links visited will
+    be the site_url of the original page and NOT the url of the links visited.
+    """
+    print "browse_website2"
+
+    # Connect to logger
+    logger = loggingclient(*manager_params['logger_address'])
+
+    # First get the site
+    visit_domain_id = 1
+        
+    start1 = timer()
+    visit_domain_id = 1
+    if extension_socket is not None:
+        visit={'visit_id':visit_id,'visit_domain_id':visit_domain_id}
+        extension_socket.send(visit)
+    
+    get_website2(url, visit_domain_id, sleep, visit_id, webdriver, proxy_queue, browser_params,manager_params,extension_socket) 
+   
+    end1 = timer()
+    resp_time = end1-start1
+    links = get_intra_links(webdriver, url)
+    logger.info("BROWSER %i, Number of links url: %i" % (browser_params['crawl_id'], len(links)))
+     
+    if len(links) == 0:
+        return
+    links_url = []
+    for link in links:
+        l = str(link.get_attribute("href" )).strip()
+#        print "1:" + l
+        if l in links_url:
+            continue
+        links_url.append(l)  
+    with open(file_name,'w') as f:  
+        f.write(url)
+        f.write("\n")      
+        for link in links_url: 
+            print("file_name ",link)   
+            f.write(link)
+            f.write("\n")
+
+     
 '''
-   while True:
-        links = get_intra_links(webdriver, url) 
-        links = filter(lambda x: x.is_displayed() == True, links)
-        if len(links) == 0 or len(links)==i:
-           break
-        print "3 i="+str(i)+" len links "+str(len(links))
-        link = links[i].get_attribute("href")
-        print "4 i="+str(i)
+
+    # Then visit all pages withing the same domain 
+
+    links = get_intra_links(webdriver, url)
+    logger.info("BROWSER %i, Number of links url: %i" % (browser_params['crawl_id'], len(links)))
+    if len(links) == 0:
+        return
+    links_url = []
+    for link in links:
+        l = str(link.get_attribute("href" )).strip()
+#        print "1:" + l
+        if l in links_url:
+            continue
+        links_url.append(l) 
+    for link_url in links_url:
         visit_domain_id += 1  
-        i += 1
-        logger.info("BROWSER %i, visit id %i visit domain id %i: visiting internal link %s" % (browser_params['crawl_id'], visit_id,visit_domain_id,link))
+        logger.info("BROWSER %i, visit id %i visit domain id %i: link url: %s" % (browser_params['crawl_id'], visit_id,visit_domain_id,link_url))
+        start2 = timer()
         sock.send(("INSERT INTO site_visits (visit_id, visit_domain_id, crawl_id, site_url) VALUES (?,?,?,?)",
-                        (visit_id, visit_domain_id,browser_params['crawl_id'], link)))       
+                        (visit_id, visit_domain_id,browser_params['crawl_id'], link_url)))       
         if extension_socket is not None:
             visit={'visit_id':visit_id,'visit_domain_id':visit_domain_id}
             extension_socket.send(visit)
-        logger.info("BROWSER %i, SITE %i %i, START get" % (browser_params['crawl_id'],visit_id,visit_domain_id))
-        get_website2(link, sleep, webdriver) 
-        logger.info("BROWSER %i, SITE %i %i, END get" % (browser_params['crawl_id'], visit_id,visit_domain_id))
-        #links = get_intra_links(webdriver, url)
-        #links = filter(lambda x: x.is_displayed() == True, links)   
-          '''
+       # logger.info("BROWSER %i, SITE %i %i, START get" % (browser_params['crawl_id'],visit_id,visit_domain_id))
+        get_website2(link_url, sleep, webdriver,sock,visit_id, visit_domain_id) 
+       # logger.info("BROWSER %i, SITE %i %i, END get" % (browser_params['crawl_id'], visit_id,visit_domain_id))
+        logger.info("BROWSER %i, Nastavljam dalje: %i" % (browser_params['crawl_id'], len(links)))
+        end2 = timer()
+        resp_time = end2-start2
+        sock.send(("UPDATE site_visits SET total_response_time = ? WHERE visit_id = ? AND visit_domain_id = ?", (resp_time, visit_id, visit_domain_id)))
 
 
 
 '''
-        try: 
-            link.click()            
-            wait_until_loaded(webdriver, 300)
-            time.sleep(max(1,sleep))
-            webdriver.back()
-            wait_until_loaded(webdriver,300)
-        except Exception:
-            pass
-        
-
-'''
+ 
 
 
 def browse_website(url, num_links, sleep, visit_id, webdriver, proxy_queue,

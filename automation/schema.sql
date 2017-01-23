@@ -36,6 +36,8 @@ CREATE TABLE IF NOT EXISTS site_visits (
     visit_domain_id INTEGER not NULL,
     crawl_id INTEGER NOT NULL,
     site_url VARCHAR(500) NOT NULL,
+    response_time REAL,
+    total_response_time REAL,
     FOREIGN KEY(crawl_id) REFERENCES crawl(id),
     PRIMARY KEY (visit_id, visit_domain_id));
 

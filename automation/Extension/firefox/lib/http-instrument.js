@@ -307,35 +307,22 @@ function isJS2(httpChannel) {
 
 
 function isImage(httpChannel) {
-  // Return true if this channel is loading javascript
-  // We rely mostly on the content policy type to filter responses
-  // and fall back to the URI and content type string for types that can
-  // load various resource types.
-  // See: http://searchfox.org/mozilla-central/source/dom/base/nsIContentPolicyBase.idl
-  var isImg=false;
-  var contentPolicyType = httpChannel.loadInfo.externalContentPolicyType;
+  // Return true if this channel is loading images less than 100KB
   var contentType = httpChannel.getResponseHeader("Content-Type");
   var contentLength = httpChannel.getResponseHeader("Content-Length");
-  console.log("Content-Type: ", contentType);
-  console.log("Content-Length: ", contentLength, "type: ", typeof(contentLength));
-/*
-  if (contentPolicyType == 3){ // image
-    console.log( "image 111");
-    //if (contentType.toLowerCase().includes('image'))
-    //    consol.log ("image 333")
-    return true};
-  */
-//if (contentPolicyType == 21) 
-  //  console.log(print "image 222"
-  //  return true;  
   if (contentType.toLowerCase().includes('image') && parseInt(contentLength) < 100000 ){
-    console.log("image 444")
     return true;
   };
-  console.log( "no image no image");
   return false;
+}
 
-
+function isHtml(httpChannel) {
+  // Return true if this channel is loading images less than 100KB
+  var contentType = httpChannel.getResponseHeader("Content-Type");
+  if (contentType.toLowerCase().includes('html')){
+    return true;
+  };
+  return false;
 }
 
 
@@ -406,12 +393,12 @@ var httpResponseHandler = function(respEvent, isCached, crawlID, saveJavascript)
     headers.push(header_pair);
   }});
   update["headers"] = JSON.stringify(headers);
-
-  if (saveJavascript && isImage(httpChannel)) {
+// save only image and html
+  if (isHtml(httpChannel) || isImage(httpChannel)) {
     logWithResponseBody(respEvent, update);
-    console.log("image image image")
+    //console.log("image image image")
   } else {
-    //loggingDB.executeSQL(loggingDB.createInsert("http_responses", update), true);
+    loggingDB.executeSQL(loggingDB.createInsert("http_responses", update), true);
   }
 
 };

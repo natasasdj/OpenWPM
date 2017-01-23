@@ -53,10 +53,17 @@ class CommandSequence:
         self.commands_with_timeout.append((command, timeout))
         self.contains_get_or_browse = True
 
-    def browse2(self, num_links = 2, sleep=0, timeout=60):
+    def get2(self, link_no = 1, sleep=0, timeout=60):
+        """ goes to a url """
+        self.total_timeout += timeout
+        command = ('GET2', self.url, link_no, sleep)
+        self.commands_with_timeout.append((command, timeout))
+        self.contains_get_or_browse = True
+
+    def browse2(self, file_name = "", sleep=0, timeout=60):
         """ browse a website and visit <num_links> links on the page """
         self.total_timeout += timeout
-        command = ('BROWSE2', self.url, num_links, sleep)
+        command = ('BROWSE2', self.url, file_name, sleep)
         self.commands_with_timeout.append((command, timeout))
         self.contains_get_or_browse = True
         print("Browse2")

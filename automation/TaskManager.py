@@ -127,6 +127,7 @@ class TaskManager:
         if last_visit_id is None:
             last_visit_id = 0
         self.next_visit_id = last_visit_id + 1
+        self.next_visit_domain_id = 1
 
         # sets up the BrowserManager(s) + associated queues
         self.browsers = self._initialize_browsers(browser_params)  # List of the Browser(s)
@@ -421,9 +422,11 @@ class TaskManager:
 
         browser.set_visit_id(self.next_visit_id)
         self.sock.send(("INSERT INTO site_visits (visit_id, visit_domain_id, crawl_id, site_url) VALUES (?,?,?,?)",
-                        (self.next_visit_id, 1, browser.crawl_id, command_sequence.url)))
-        self.next_visit_id += 1
-
+                        (self.next_visit_id, self.next_visit_domain_id, browser.crawl_id, command_sequence.url)))
+        if command_sequence.reset:
+            self.next_visit_id += 1
+            self.next_visit_domain_id = 1 
+        self.next_visit_domain_id += 1
         # Start command execution thread
         args = (browser, command_sequence, condition)
         thread = threading.Thread(target=self._issue_command, args=args)
@@ -451,7 +454,8 @@ class TaskManager:
             if command[0] in ['GET', 'BROWSE','BROWSE_LINKS']:
                 start_time = time.time()
                 command += (browser.curr_visit_id,)
-            elif command[0] in ['BROWSE2']:
+            elif command[0] in ['BROWSE2','GET2']:
+                print "put in queue" + command[0]
                 start_time = time.time()
                 command += (browser.curr_visit_id, )
             elif command[0] in ['DUMP_FLASH_COOKIES', 'DUMP_PROFILE_COOKIES']:
@@ -492,12 +496,12 @@ class TaskManager:
                             (browser.crawl_id, command[0], command_arguments, command_succeeded)))
 
             if command_succeeded != 1:
-
+                '''
                 if command_arguments is not None: 
                     with open(self.manager_params['data_directory']+'/unsuccessful_crawl.csv','a') as f:
                         f.write(command_arguments)
                         f.write('\n')
-                
+                '''               
                 with self.threadlock:
                     self.failurecount += 1
                 if self.failurecount > self.failure_limit:

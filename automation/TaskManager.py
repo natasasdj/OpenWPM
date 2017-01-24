@@ -127,7 +127,6 @@ class TaskManager:
         if last_visit_id is None:
             last_visit_id = 0
         self.next_visit_id = last_visit_id + 1
-        self.next_visit_domain_id = 1
 
         # sets up the BrowserManager(s) + associated queues
         self.browsers = self._initialize_browsers(browser_params)  # List of the Browser(s)
@@ -418,15 +417,12 @@ class TaskManager:
         if self.closing:
             self.logger.error("Attempted to execute command on a closed TaskManager")
             return
-        self._check_failure_status()
-
-        browser.set_visit_id(self.next_visit_id)
+        self._check_failure_status()              
         self.sock.send(("INSERT INTO site_visits (visit_id, visit_domain_id, crawl_id, site_url) VALUES (?,?,?,?)",
-                        (self.next_visit_id, self.next_visit_domain_id, browser.crawl_id, command_sequence.url)))
-        if command_sequence.reset:
-            self.next_visit_id += 1
-            self.next_visit_domain_id = 1 
-        self.next_visit_domain_id += 1
+                        (browser.curr_visit_id, browser.curr_visit_domain_id, browser.crawl_id, command_sequence.url)))
+        #if command_sequence.reset:
+        #    self.next_visit_id += 1
+            
         # Start command execution thread
         args = (browser, command_sequence, condition)
         thread = threading.Thread(target=self._issue_command, args=args)
@@ -455,9 +451,8 @@ class TaskManager:
                 start_time = time.time()
                 command += (browser.curr_visit_id,)
             elif command[0] in ['BROWSE2','GET2']:
-                print "put in queue" + command[0]
                 start_time = time.time()
-                command += (browser.curr_visit_id, )
+                command += (browser.curr_visit_id, browser.curr_visit_domain_id)
             elif command[0] in ['DUMP_FLASH_COOKIES', 'DUMP_PROFILE_COOKIES']:
                 command += (start_time, browser.curr_visit_id,)
             browser.current_timeout = timeout

@@ -20,7 +20,7 @@ class CommandSequence:
     called prior to one of those two commands.
     """
 
-    def __init__(self, url, reset=False, blocking=False):
+    def __init__(self, url, reset=False, blocking=False, new = False):
         """Initialize command sequence.
 
         Parameters
@@ -34,6 +34,7 @@ class CommandSequence:
         """
         self.url = url
         self.reset = reset
+        self.new = new # reset visit_domain_id 
         self.blocking = blocking
         self.commands_with_timeout = []
         self.total_timeout = 0
@@ -53,21 +54,20 @@ class CommandSequence:
         self.commands_with_timeout.append((command, timeout))
         self.contains_get_or_browse = True
 
-    def get2(self, link_no = 1, sleep=0, timeout=60):
+    def get2(self, sleep=0, timeout=60):
         """ goes to a url """
         self.total_timeout += timeout
-        command = ('GET2', self.url, link_no, sleep)
+        command = ('GET2', self.url, sleep)
         self.commands_with_timeout.append((command, timeout))
         self.contains_get_or_browse = True
 
-    def browse2(self, file_name = "", sleep=0, timeout=60):
+    def browse2(self, sleep=0, timeout=60):
         """ browse a website and visit <num_links> links on the page """
         self.total_timeout += timeout
-        command = ('BROWSE2', self.url, file_name, sleep)
+        command = ('BROWSE2', self.url, sleep)
         self.commands_with_timeout.append((command, timeout))
         self.contains_get_or_browse = True
-        print("Browse2")
-
+        
     def dump_flash_cookies(self, timeout=60):
         """ dumps the local storage vectors (flash, localStorage, cookies) to db
         Side effect: closes the current tab."""

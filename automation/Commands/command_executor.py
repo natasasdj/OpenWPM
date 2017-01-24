@@ -19,11 +19,11 @@ def execute_command(command, webdriver, proxy_queue, browser_settings, browser_p
                                         proxy_queue=proxy_queue, browser_params=browser_params,
                                         manager_params=manager_params, extension_socket=extension_socket)
     if command[0] == 'BROWSE2':
-        browser_commands.browse_website2(url=command[1], file_name=command[2], sleep=command[3], visit_id=command[4],
+        browser_commands.browse_website2(url=command[1], sleep=command[2], visit_id=command[3], visit_domain_id=command[4], 
                                          webdriver=webdriver, proxy_queue=proxy_queue, browser_params=browser_params,
                                         manager_params=manager_params, extension_socket=extension_socket)
     if command[0] == 'GET2':
-        browser_commands.get_website2(url=command[1], link_no=command[2], sleep=command[3],visit_id=command[4], 
+        browser_commands.get_website2(url=command[1], sleep=command[2],visit_id=command[3], visit_domain_id=command[4], 
                                         webdriver=webdriver, proxy_queue=proxy_queue, browser_params=browser_params,
                                         manager_params=manager_params, extension_socket=extension_socket)
 

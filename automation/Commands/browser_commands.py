@@ -290,7 +290,7 @@ def browse_website2a(url, num_links, sleep, visit_id, webdriver, proxy_queue,
     # Then visit all pages withing the same domain 
 
     links = get_intra_links(webdriver, url)
-    logger.info("BROWSER %i, Number of links url: %i" % (browser_params['crawl_id'], len(links)))
+    #logger.info("BROWSER %i, Number of links url: %i" % (browser_params['crawl_id'], len(links)))
     if len(links) == 0:
         return
     links_url = []
@@ -317,7 +317,7 @@ def browse_website2a(url, num_links, sleep, visit_id, webdriver, proxy_queue,
         resp_time = end2-start2
         sock.send(("UPDATE site_visits SET total_response_time = ? WHERE visit_id = ? AND visit_domain_id = ?", (resp_time, visit_id, visit_domain_id)))
 
-def get_website2(url, link_no, sleep, visit_id, webdriver, proxy_queue,browser_params,manager_params,extension_socket):
+def get_website2(url,sleep, visit_id, visit_domain_id, webdriver, proxy_queue,browser_params,manager_params,extension_socket):
     """
     goes to <url> using the given <webdriver> instance
     <proxy_queue> is queue for sending the proxy the current first party site
@@ -326,7 +326,7 @@ def get_website2(url, link_no, sleep, visit_id, webdriver, proxy_queue,browser_p
     tab_restart_browser(webdriver)
     main_handle = webdriver.current_window_handle
     if extension_socket is not None:
-        visit={'visit_id':visit_id,'visit_domain_id':link_no}
+        visit={'visit_id':visit_id,'visit_domain_id':visit_domain_id}
         extension_socket.send(visit)
     # sends top-level domain to proxy and extension (if enabled)
     # then, waits for it to finish marking traffic in proxy before moving to new site
@@ -338,7 +338,7 @@ def get_website2(url, link_no, sleep, visit_id, webdriver, proxy_queue,browser_p
         webdriver.get(url)
         end = timer()       
         response_time = end - start
-        sock.send(("UPDATE site_visits SET response_time = ? WHERE visit_id = ? AND visit_domain_id = ?", (response_time, visit_id, link_no)))
+        sock.send(("UPDATE site_visits SET response_time = ? WHERE visit_id = ? AND visit_domain_id = ?", (response_time, visit_id, visit_domain_id)))
     except TimeoutException:
         pass
     
@@ -364,92 +364,52 @@ def get_website2(url, link_no, sleep, visit_id, webdriver, proxy_queue,browser_p
         webdriver.switch_to_window(main_handle)
     end1 = timer()       
     response_time = end1 - start1
-    sock.send(("UPDATE site_visits SET total_response_time = ? WHERE visit_id = ? AND visit_domain_id = ?", (response_time, visit_id, link_no)))
+    sock.send(("UPDATE site_visits SET total_response_time = ? WHERE visit_id = ? AND visit_domain_id = ?", (response_time, visit_id, visit_domain_id)))
     sock.close()
 
 
-def browse_website2(url, file_name, sleep, visit_id, webdriver, proxy_queue,
+def browse_website2(url, sleep, visit_id, visit_domain_id, webdriver, proxy_queue,
                    browser_params, manager_params, extension_socket):
     """Calls get_website before visiting <num_links> present on the page.
 
     Note: the site_url in the site_visits table for the links visited will
     be the site_url of the original page and NOT the url of the links visited.
     """
-    print "browse_website2"
-
+    
     # Connect to logger
     logger = loggingclient(*manager_params['logger_address'])
 
     # First get the site
-    visit_domain_id = 1
         
     start1 = timer()
-    visit_domain_id = 1
+
     if extension_socket is not None:
         visit={'visit_id':visit_id,'visit_domain_id':visit_domain_id}
         extension_socket.send(visit)
     
-    get_website2(url, visit_domain_id, sleep, visit_id, webdriver, proxy_queue, browser_params,manager_params,extension_socket) 
+    get_website2(url, sleep, visit_id, visit_domain_id, webdriver, proxy_queue, browser_params,manager_params,extension_socket) 
    
     end1 = timer()
     resp_time = end1-start1
     links = get_intra_links(webdriver, url)
-    logger.info("BROWSER %i, Number of links url: %i" % (browser_params['crawl_id'], len(links)))
+    #logger.info("BROWSER %i, Number of links url: %i" % (browser_params['crawl_id'], len(links)))
      
     if len(links) == 0:
         return
     links_url = []
     for link in links:
         l = str(link.get_attribute("href" )).strip()
-#        print "1:" + l
         if l in links_url:
             continue
         links_url.append(l)  
+    file_name = manager_params['data_directory']+'/links/link_' + str(visit_id)
     with open(file_name,'w') as f:  
         f.write(url)
         f.write("\n")      
-        for link in links_url: 
-            print("file_name ",link)   
+        for link in links_url:  
             f.write(link)
             f.write("\n")
 
-     
-'''
-
-    # Then visit all pages withing the same domain 
-
-    links = get_intra_links(webdriver, url)
-    logger.info("BROWSER %i, Number of links url: %i" % (browser_params['crawl_id'], len(links)))
-    if len(links) == 0:
-        return
-    links_url = []
-    for link in links:
-        l = str(link.get_attribute("href" )).strip()
-#        print "1:" + l
-        if l in links_url:
-            continue
-        links_url.append(l) 
-    for link_url in links_url:
-        visit_domain_id += 1  
-        logger.info("BROWSER %i, visit id %i visit domain id %i: link url: %s" % (browser_params['crawl_id'], visit_id,visit_domain_id,link_url))
-        start2 = timer()
-        sock.send(("INSERT INTO site_visits (visit_id, visit_domain_id, crawl_id, site_url) VALUES (?,?,?,?)",
-                        (visit_id, visit_domain_id,browser_params['crawl_id'], link_url)))       
-        if extension_socket is not None:
-            visit={'visit_id':visit_id,'visit_domain_id':visit_domain_id}
-            extension_socket.send(visit)
-       # logger.info("BROWSER %i, SITE %i %i, START get" % (browser_params['crawl_id'],visit_id,visit_domain_id))
-        get_website2(link_url, sleep, webdriver,sock,visit_id, visit_domain_id) 
-       # logger.info("BROWSER %i, SITE %i %i, END get" % (browser_params['crawl_id'], visit_id,visit_domain_id))
-        logger.info("BROWSER %i, Nastavljam dalje: %i" % (browser_params['crawl_id'], len(links)))
-        end2 = timer()
-        resp_time = end2-start2
-        sock.send(("UPDATE site_visits SET total_response_time = ? WHERE visit_id = ? AND visit_domain_id = ?", (resp_time, visit_id, visit_domain_id)))
-
-
-
-'''
- 
 
 
 def browse_website(url, num_links, sleep, visit_id, webdriver, proxy_queue,

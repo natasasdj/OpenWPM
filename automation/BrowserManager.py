@@ -42,6 +42,7 @@ class Browser:
         self.logger_address = manager_params['logger_address']
         self.crawl_id = browser_params['crawl_id']
         self.curr_visit_id = None
+        self.curr_visit_domain_id = None 
         self.browser_params = browser_params
         self.manager_params = manager_params
 
@@ -68,6 +69,13 @@ class Browser:
 
     def set_visit_id(self, visit_id):
         self.curr_visit_id = visit_id
+
+    def set_visit_domain_id(self, new=False):       
+        if new:
+            self.curr_visit_domain_id = 1
+        else:
+            self.curr_visit_domain_id += 1
+        
 
     def launch_browser_manager(self):
         """

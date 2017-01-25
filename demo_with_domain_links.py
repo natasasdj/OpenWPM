@@ -8,12 +8,15 @@ import time
 from urllib import urlopen
 from automation import TaskManager, CommandSequence
 from timeit import default_timer as timer
+from automation.MPLogger import loggingclient
 
 # The list of sites that we wish to crawl
-NUM_BROWSERS = 2
+NUM_BROWSERS = 50
+no_of_sites = 1000
 
-data_input_dir = os.getcwd() + '/data/input/'
-data_output_dir_links = os.getcwd() + '/data/output/links/'
+curr_dir = os.getcwd()
+data_input_dir = curr_dir + '/data/input/'
+data_output_dir_links = curr_dir + '/data/output/links/'
 alexa_file_name = data_input_dir + 'proba.csv'
 #alexa_file_name = data_input_dir + 'top-1m.csv'
 
@@ -55,7 +58,7 @@ for i in xrange(NUM_BROWSERS):
 
 # Update TaskManager configuration (use this for crawl-wide settings)
 manager_params['data_directory'] = os.getcwd()+'/data/output'
-#print manager_params['data_directory']
+
 manager_params['log_directory'] = os.getcwd()+'/data/output'
 
 # Instantiates the measurement platform
@@ -65,35 +68,45 @@ manager = TaskManager.TaskManager(manager_params, browser_params)
 
 # Visits the sites with all browsers simultaneously
 browsers_ready_list = range(0,NUM_BROWSERS)
+threadLock = threading.Lock()
+counter = 0
+
+logger = loggingclient(*manager_params['logger_address'])
+
+
 
 def browse_site_and_links(site,browser_no,browser):  
-    
-    #browser=manager.browsers[browser_no]
     browser.set_visit_domain_id(new=True)
-    # s = site +" " + str(browser_no) + " " + str(browser.curr_visit_id) + " " + str(browser.curr_visit_domain_id) 
-    # print s 
+    #logger.info("browse_site_and_links - BROWSER %i %i - %s %i %i" % (browser_no, browser.browser_params['crawl_id'], site, browser.curr_visit_id, browser.curr_visit_domain_id))
     command_sequence = CommandSequence.CommandSequence(site,blocking=True,new=True)
-    command_sequence.browse2(sleep=0, timeout=15)   
+    command_sequence.browse2(sleep=0, timeout=60)   
     manager.execute_command_sequence(command_sequence, index= browser_no) 
     file_name = manager_params['data_directory']+'/links/link_' + str(browser.curr_visit_id) 
     if os.path.exists(file_name):
-        #print "open file"
         with open(file_name,'r') as f:
             links = f.read().strip().split('\n')
             l = len(links)
             for k in range(1,l): 
-                if k==2: break
-                link=links[k] 
+                if k==300: break
+                link=links[k]                
                 browser.set_visit_domain_id() 
-                #s= str(k) + " get link: " + link + " " + str(browser.curr_visit_id) + " " + str(browser.curr_visit_domain_id)
-                #print s 
+                #logger.info("browse_site_and_links - BROWSER %i %i - %s %i %i" % (browser_no, browser.browser_params['crawl_id'], link, browser.curr_visit_id, browser.curr_visit_domain_id))
                 if k==l-1:                           
                     command_sequence = CommandSequence.CommandSequence(link,blocking=True,reset=True) 
                 else:
                     command_sequence = CommandSequence.CommandSequence(link,blocking=True)      
-                command_sequence.get2(sleep=0, timeout=15)
+                command_sequence.get2(sleep=0, timeout=30)
                 manager.execute_command_sequence(command_sequence, index= browser_no)                      
-    browsers_ready_list.append(browser_no) 
+    browsers_ready_list.append(browser_no)
+    global counter
+    #logger.info("browse_site_and_links - counter %i" % (counter,))
+    threadLock.acquire()   
+    counter = counter + 1
+    threadLock.release()
+    #logger.info("browse_site_and_links - counter %i" % (counter,))
+ 
+    
+      
       
 
 start = timer()
@@ -102,24 +115,24 @@ with open(alexa_file_name, 'r') as f:
     csv_reader = csv.reader(f, delimiter=',')
     i=0
     for row in csv_reader:
-        if i==3: break            
+        if i == no_of_sites: break            
         site = 'http://www.' + row[1]
         #print str(i)+" " + site        
         i=i+1
         while True:
             try:
-                # print(browsers_ready_list)
                 browser_no = browsers_ready_list.pop() 
                 #browse_site_and_links(site,browser_no)
                 browser=manager.browsers[browser_no]
-                browser.set_visit_id(manager.next_visit_id)                
+                browser.set_visit_id(manager.next_visit_id)
+                #logger.info("i = %i " % (i, ))                                 
                 t = threading.Thread(target=browse_site_and_links,args=(site,browser_no,browser)) 
-                t.deamon = True
-                t.start()               
-                manager.next_visit_id+=1                                 
+                #t.deamon = True
+                manager.next_visit_id+=1
+                t.start()                                                                
                 break
             except IndexError:           
-                #print "no more browsers"
+                #logger.info("no more browseres ")
                 time.sleep(1)
   
 
@@ -139,10 +152,10 @@ with open(alexa_file_name, 'r') as f:
 
 #time.sleep(5)
 
-while len(browsers_ready_list) < NUM_BROWSERS:
-      #print "sleep for 5 seconds" 
-      time.sleep(5) 
+while counter < no_of_sites:
+      logger.info("********** counter %i, sleep for 15 sec **********" % (counter,))
+      time.sleep(15) 
+logger.info("********** counter %i **********" % (counter,))
 end = timer()
-#print("End time: ", end)
 print("Response time:", end - start)
 manager.close()

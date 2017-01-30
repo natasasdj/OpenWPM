@@ -222,14 +222,14 @@ function binaryHashtoHex(hash) {
   return Array.from(hash, (c, i) => toHexString(hash.charCodeAt(i))).join("");
 }
 
-function logWithResponseBody(respEvent, update) {
+function logWithResponseBody(respEvent, update,type) {
   // log with response body from an 'http-on-examine(-cached)?-response' event
   var newListener = new TracingListener();
   respEvent.subject.QueryInterface(Ci.nsITraceableChannel);
   newListener.originalListener = respEvent.subject.setNewListener(newListener);
   newListener.promiseDone.then(function() {    
     var respBody = newListener.responseBody; // get response body as a string
-    fileName = loggingDB.writeRespBodyIntoFile(respBody);
+    fileName = loggingDB.writeRespBodyIntoFile(respBody,type);
     //console.log("fileName http", fileName);
     update["file_name"] = fileName;
     loggingDB.executeSQL(loggingDB.createInsert("http_responses", update), true);
@@ -394,9 +394,11 @@ var httpResponseHandler = function(respEvent, isCached, crawlID, saveJavascript)
   }});
   update["headers"] = JSON.stringify(headers);
 // save only image and html
-  if (isHtml(httpChannel) || isImage(httpChannel)) {
-    logWithResponseBody(respEvent, update);
+  if (isHtml(httpChannel)) {
+      logWithResponseBody(respEvent, update,"html");
     //console.log("image image image")
+  } else if (isImage(httpChannel)) {
+       logWithResponseBody(respEvent, update,"img");    
   } else {
     loggingDB.executeSQL(loggingDB.createInsert("http_responses", update), true);
   }

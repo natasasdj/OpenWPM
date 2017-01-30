@@ -177,17 +177,22 @@ exports.createInsert = function(table, update) {
 }
 
 
-exports.writeRespBodyIntoFile = function(respBody) { 
+exports.writeRespBodyIntoFile = function(respBody,type) { 
   while (!debugging && listeningSocket.queue.length != 0) {
     visit = listeningSocket.queue.shift();      
     noFile = 0;
     visitID = visit["visit_id"];
     visitDomainID  = visit["visit_domain_id"];  
-  }  
+  }; 
   
-  noFile = noFile + 1;
-  var name = "file-" + visitID + "-" + visitDomainID + "-" + noFile;
-  var fileName = dataDirectory + "/httpResp/" + name; 
+    noFile = noFile + 1;
+    var name = "file-" + visitID + "-" + visitDomainID + "-" + noFile;
+    if (type == "html") {
+	name = name + ".html";
+    } else if (type == "image") {
+        name = name + ".image";
+    };
+  var fileName = dataDirectory + "/httpResp/" + "site-" + visitID + "/" + name; 
   console.log("fileName logg",fileName); 
   aFile.initWithPath(fileName);
   console.log("initialize file",fileName);

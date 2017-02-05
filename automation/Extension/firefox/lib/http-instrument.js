@@ -394,6 +394,7 @@ var httpResponseHandler = function(respEvent, isCached, crawlID, saveJavascript)
   }});
   update["headers"] = JSON.stringify(headers);
 // save only image and html
+  /*
   if (isHtml(httpChannel)) {
       logWithResponseBody(respEvent, update,"html");
     //console.log("image image image")
@@ -402,6 +403,7 @@ var httpResponseHandler = function(respEvent, isCached, crawlID, saveJavascript)
   } else {
     loggingDB.executeSQL(loggingDB.createInsert("http_responses", update), true);
   }
+  */
 
 };
 

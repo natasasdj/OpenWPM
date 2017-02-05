@@ -10,8 +10,8 @@ from timeit import default_timer as timer
 from automation.MPLogger import loggingclient
 
 # The list of sites that we wish to crawl
-NUM_BROWSERS = 3 
-no_start_site = 9
+NUM_BROWSERS = 2 
+no_start_site = 1
 no_of_sites = 3
 
 curr_dir = os.getcwd()
@@ -49,7 +49,7 @@ manager_params, browser_params = TaskManager.load_default_params(NUM_BROWSERS)
 for i in xrange(NUM_BROWSERS):
    
     browser_params[i]['http_instrument']= True # Record HTTP Requests and Responses
-#    browser_params[i]['headless'] = True
+    browser_params[i]['headless'] = True
     browser_params[i]['cookie_instrument']= True
     browser_params[i]['extension_enabled']= True
     browser_params[i]['disable_flash'] = True #Enable flash for all three browsers
@@ -87,7 +87,7 @@ def browse_site_and_links(site,browser_no,browser):
             links = f.read().strip().split('\n')
             l = len(links)
             for k in range(1,l): 
-                if k==3: break
+                if k==2: break
                 link=links[k]                
                 browser.set_visit_domain_id() 
                 #logger.info("browse_site_and_links - BROWSER %i %i - %s %i %i" % (browser_no, browser.browser_params['crawl_id'], link, browser.curr_visit_id, browser.curr_visit_domain_id))
@@ -118,7 +118,7 @@ with open(alexa_file_name, 'r') as f:
         if i == no_start_site + no_of_sites - 1: break            
         #print str(i)+" " + site        
         i=i+1
-        print i 
+        #print i 
         if i < no_start_site: continue
         site = 'http://www.' + row[1]
         while True:
@@ -156,7 +156,7 @@ with open(alexa_file_name, 'r') as f:
 
 while counter < no_of_sites:
       logger.info("********** counter %i, sleep for 15 sec **********" % (counter,))
-      time.sleep(15) 
+      time.sleep(5) 
 logger.info("********** counter %i **********" % (counter,))
 end = timer()
 print("Response time:", end - start)

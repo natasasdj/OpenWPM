@@ -10,7 +10,7 @@ from timeit import default_timer as timer
 from automation.MPLogger import loggingclient
 
 # The list of sites that we wish to crawl
-NUM_BROWSERS = 20 
+NUM_BROWSERS = 10 
 no_start_site = 1
 no_of_sites = 100
 
@@ -79,24 +79,27 @@ def browse_site_and_links(site,browser_no,browser):
     browser.set_visit_domain_id(new=True)
     #logger.info("browse_site_and_links - BROWSER %i %i - %s %i %i" % (browser_no, browser.browser_params['crawl_id'], site, browser.curr_visit_id, browser.curr_visit_domain_id))
     command_sequence = CommandSequence.CommandSequence(site,blocking=True,new=True)
-    command_sequence.browse2(sleep=0, timeout=90)   
-    manager.execute_command_sequence(command_sequence, index= browser_no) 
-    file_name = manager_params['data_directory']+'/links/link_' + str(browser.curr_visit_id) 
-    if os.path.exists(file_name):
-        with open(file_name,'r') as f:
-            links = f.read().strip().split('\n')
-            l = len(links)
-            for k in range(1,l): 
-                if k==2: break
-                link=links[k]                
-                browser.set_visit_domain_id() 
-                #logger.info("browse_site_and_links - BROWSER %i %i - %s %i %i" % (browser_no, browser.browser_params['crawl_id'], link, browser.curr_visit_id, browser.curr_visit_domain_id))
-                if k==l-1:                           
-                    command_sequence = CommandSequence.CommandSequence(link,blocking=True,reset=True) 
-                else:
-                    command_sequence = CommandSequence.CommandSequence(link,blocking=True)      
-                command_sequence.get2(sleep=0, timeout=60)
-                manager.execute_command_sequence(command_sequence, index= browser_no)                      
+    try:
+        command_sequence.browse2(sleep=0, timeout=90)   
+        manager.execute_command_sequence(command_sequence, index= browser_no) 
+        file_name = manager_params['data_directory']+'/links/link_' + str(browser.curr_visit_id) 
+        if os.path.exists(file_name):
+            with open(file_name,'r') as f:
+                links = f.read().strip().split('\n')
+                l = len(links)
+                for k in range(1,l): 
+                    if k==2: break
+                    link=links[k]                
+                    browser.set_visit_domain_id() 
+                    #logger.info("browse_site_and_links - BROWSER %i %i - %s %i %i" % (browser_no, browser.browser_params['crawl_id'], link, browser.curr_visit_id, browser.curr_visit_domain_id))
+                    if k==l-1:                           
+                        command_sequence = CommandSequence.CommandSequence(link,blocking=True,reset=True) 
+                    else:
+                        command_sequence = CommandSequence.CommandSequence(link,blocking=True)      
+                    command_sequence.get2(sleep=0, timeout=60)
+                    manager.execute_command_sequence(command_sequence, index= browser_no) 
+    except:
+       pass                     
     browsers_ready_list.append(browser_no)
     global counter
     #logger.info("browse_site_and_links - counter %i" % (counter,))

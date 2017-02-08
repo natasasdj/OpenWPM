@@ -470,6 +470,7 @@ def browse_website2(url, sleep, visit_id, visit_domain_id, webdriver, proxy_queu
         
     link_elements = webdriver.find_elements_by_tag_name('a') 
     if len(link_elements) == 0:
+        sock.send(("UPDATE site_visits SET no_links = ? WHERE visit_id = ? AND visit_domain_id = ?", (0, visit_id, visit_domain_id)))
         return
  
     domain=urlparse(url).hostname.strip('www.')
@@ -484,6 +485,7 @@ def browse_website2(url, sleep, visit_id, visit_domain_id, webdriver, proxy_queu
         link_urls.append(s) 
     end1 = timer()       
     response_time = end1 - start1
+    sock.send(("UPDATE site_visits SET no_links = ? WHERE visit_id = ? AND visit_domain_id = ?", (len(link_urls), visit_id, visit_domain_id)))
     sock.send(("UPDATE site_visits SET resp_time_3 = ? WHERE visit_id = ? AND visit_domain_id = ?", (response_time, visit_id, visit_domain_id))) 
       
     file_name = manager_params['data_directory']+'/links/link_' + str(visit_id)

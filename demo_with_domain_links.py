@@ -10,9 +10,9 @@ from timeit import default_timer as timer
 from automation.MPLogger import loggingclient
 
 # The list of sites that we wish to crawl
-NUM_BROWSERS = 2 
+NUM_BROWSERS = 1 
 no_start_site = 1
-no_of_sites = 3
+no_of_sites = 1
 
 curr_dir = os.getcwd()
 data_input_dir = curr_dir + '/data/input/'

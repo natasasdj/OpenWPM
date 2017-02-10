@@ -10,9 +10,9 @@ from timeit import default_timer as timer
 from automation.MPLogger import loggingclient
 
 # The list of sites that we wish to crawl
-NUM_BROWSERS = 10 
+NUM_BROWSERS = 2 
 no_start_site = 1
-no_of_sites = 100
+no_of_sites = 3
 
 curr_dir = os.getcwd()
 data_input_dir = curr_dir + '/data/input/'
@@ -49,7 +49,7 @@ manager_params, browser_params = TaskManager.load_default_params(NUM_BROWSERS)
 for i in xrange(NUM_BROWSERS):
    
     browser_params[i]['http_instrument']= True # Record HTTP Requests and Responses
-    browser_params[i]['headless'] = True
+#    browser_params[i]['headless'] = True
     browser_params[i]['cookie_instrument']= True
     browser_params[i]['extension_enabled']= True
     browser_params[i]['disable_flash'] = True #Enable flash for all three browsers
@@ -75,14 +75,14 @@ logger = loggingclient(*manager_params['logger_address'])
 
 
 
-def browse_site_and_links(site,browser_no,browser):  
-    browser.set_visit_domain_id(new=True)
-    #logger.info("browse_site_and_links - BROWSER %i %i - %s %i %i" % (browser_no, browser.browser_params['crawl_id'], site, browser.curr_visit_id, browser.curr_visit_domain_id))
+def browse_site_and_links(site,browser_no,browser): 
+    browser.set_link_id(new=True)
+    #logger.info("browse_site_and_links - BROWSER %i %i - %s %i %i" % (browser_no, browser.browser_params['crawl_id'], site, browser.curr_site_id, browser.curr_link_id))
     command_sequence = CommandSequence.CommandSequence(site,blocking=True,new=True)
     try:
         command_sequence.browse2(sleep=0, timeout=90)   
         manager.execute_command_sequence(command_sequence, index= browser_no) 
-        file_name = manager_params['data_directory']+'/links/link_' + str(browser.curr_visit_id) 
+        file_name = manager_params['data_directory']+'/links/link_' + str(browser.curr_site_id) 
         if os.path.exists(file_name):
             with open(file_name,'r') as f:
                 links = f.read().strip().split('\n')
@@ -90,8 +90,8 @@ def browse_site_and_links(site,browser_no,browser):
                 for k in range(1,l): 
                     if k==2: break
                     link=links[k]                
-                    browser.set_visit_domain_id() 
-                    #logger.info("browse_site_and_links - BROWSER %i %i - %s %i %i" % (browser_no, browser.browser_params['crawl_id'], link, browser.curr_visit_id, browser.curr_visit_domain_id))
+                    browser.set_link_id() 
+                    #logger.info("browse_site_and_links - BROWSER %i %i - %s %i %i" % (browser_no, browser.browser_params['crawl_id'], link, browser.curr_site_id, browser.curr_link_id))
                     if k==l-1:                           
                         command_sequence = CommandSequence.CommandSequence(link,blocking=True,reset=True) 
                     else:
@@ -99,7 +99,7 @@ def browse_site_and_links(site,browser_no,browser):
                     command_sequence.get2(sleep=0, timeout=60)
                     manager.execute_command_sequence(command_sequence, index= browser_no) 
     except:
-       pass                     
+       pass                   
     browsers_ready_list.append(browser_no)
     global counter
     #logger.info("browse_site_and_links - counter %i" % (counter,))
@@ -121,7 +121,6 @@ with open(alexa_file_name, 'r') as f:
         if i == no_start_site + no_of_sites - 1: break            
         #print str(i)+" " + site        
         i=i+1
-        #print i 
         if i < no_start_site: continue
         site = 'http://www.' + row[1]
         while True:
@@ -129,11 +128,12 @@ with open(alexa_file_name, 'r') as f:
                 browser_no = browsers_ready_list.pop() 
                 #browse_site_and_links(site,browser_no)
                 browser=manager.browsers[browser_no]
-                browser.set_visit_id(manager.next_visit_id)
+                #browser.set_site_id(manager.next_site_id)
+                browser.set_site_id(i)
                 #logger.info("i = %i " % (i, ))                                 
                 t = threading.Thread(target=browse_site_and_links,args=(site,browser_no,browser)) 
                 #t.deamon = True
-                manager.next_visit_id+=1
+                #manager.next_site_id+=1
                 t.start()                                                                
                 break
             except IndexError:           

@@ -121,13 +121,15 @@ class TaskManager:
         self._save_configuration(browser_params)
 
         # read the last used site visit id
+        #!!!
+        '''
         cur = self.db.cursor()
-        cur.execute("SELECT MAX(visit_id) from site_visits")
-        last_visit_id = cur.fetchone()[0]
-        if last_visit_id is None:
-            last_visit_id = 0
-        self.next_visit_id = last_visit_id + 1
-
+        cur.execute("SELECT MAX(site_id) from site_visits")
+        last_site_id = cur.fetchone()[0]
+        if last_site_id is None:
+            last_site_id = 0
+        self.next_site_id = last_site_id + 1
+        '''
         # sets up the BrowserManager(s) + associated queues
         self.browsers = self._initialize_browsers(browser_params)  # List of the Browser(s)
         self._launch_browsers()
@@ -139,11 +141,13 @@ class TaskManager:
 
     def _save_configuration(self, browser_params):
         """ Saves crawl configuration details to db and logfile"""
-        cur = self.db.cursor()
-
+        
+        
+        
         # Get git version and commit information
         openwpm_v, browser_v = get_version()
-
+        '''
+        cur = self.db.cursor()
         # Record task details
         cur.execute(("INSERT INTO task "
                      "(manager_params, openwpm_version, browser_version) "
@@ -151,14 +155,15 @@ class TaskManager:
                 (json.dumps(self.manager_params), openwpm_v, browser_v))
         self.db.commit()
         self.task_id = cur.lastrowid
-
+        '''
         # Record browser details for each brower
         for i in xrange(self.num_browsers):
-            cur.execute("INSERT INTO crawl (task_id, browser_params) VALUES (?,?)",
+            '''cur.execute("INSERT INTO crawl (task_id, browser_params) VALUES (?,?)",
                         (self.task_id, json.dumps(browser_params[i])))
-            self.db.commit()
-            browser_params[i]['crawl_id'] = cur.lastrowid
-
+            self.db.commit()'''
+            browser_params[i]['crawl_id'] = i+1
+       
+        
         # Print the configuration details
         self.logger.info(get_configuration_string(self.manager_params,
                                                   browser_params,
@@ -169,7 +174,6 @@ class TaskManager:
         browsers = list()
         for i in xrange(self.num_browsers):
             browsers.append(Browser(self.manager_params, browser_params[i]))
-
         return browsers
 
     def _launch_browsers(self):
@@ -190,8 +194,10 @@ class TaskManager:
             # These are found within the scope of each instance of Browser in the browsers list
             screen_res = str(browser.browser_settings['screen_res'])
             ua_string = str(browser.browser_settings['ua_string'])
+            ''' 
             self.sock.send(("UPDATE crawl SET screen_res = ?, ua_string = ? \
                              WHERE crawl_id = ?", (screen_res, ua_string, browser.crawl_id)))
+            '''
 
     def _manager_watchdog(self):
         """
@@ -299,13 +305,14 @@ class TaskManager:
 
         for browser in self.browsers:
             browser.shutdown_browser(during_init)
+            '''
             if failure:
                 self.sock.send(("UPDATE crawl SET finished = -1 WHERE crawl_id = ?",
                                 (browser.crawl_id,)))
             else:
                 self.sock.send(("UPDATE crawl SET finished = 1 WHERE crawl_id = ?",
                                 (browser.crawl_id,)))
-
+            '''
         self.db.close()  # close db connection
         self.sock.close()  # close socket to data aggregator
         self._kill_aggregators()
@@ -417,11 +424,12 @@ class TaskManager:
         if self.closing:
             self.logger.error("Attempted to execute command on a closed TaskManager")
             return
-        self._check_failure_status()              
-        self.sock.send(("INSERT INTO site_visits (visit_id, visit_domain_id, crawl_id, site_url) VALUES (?,?,?,?)",
-                        (browser.curr_visit_id, browser.curr_visit_domain_id, browser.crawl_id, command_sequence.url)))
+        self._check_failure_status()   
+        #!!!           
+        self.sock.send(("INSERT INTO site_visits (site_id, link_id, site_url) VALUES (?,?,?)",
+                        (browser.curr_site_id, browser.curr_link_id, command_sequence.url)))
         #if command_sequence.reset:
-        #    self.next_visit_id += 1
+        #    self.next_site_id += 1
             
         # Start command execution thread
         args = (browser, command_sequence, condition)
@@ -449,12 +457,12 @@ class TaskManager:
             command, timeout = command_and_timeout
             if command[0] in ['GET', 'BROWSE','BROWSE_LINKS']:
                 start_time = time.time()
-                command += (browser.curr_visit_id,)
+                command += (browser.curr_site_id,)
             elif command[0] in ['BROWSE2','GET2']:
                 start_time = time.time()
-                command += (browser.curr_visit_id, browser.curr_visit_domain_id)
+                command += (browser.curr_site_id, browser.curr_link_id,)
             elif command[0] in ['DUMP_FLASH_COOKIES', 'DUMP_PROFILE_COOKIES']:
-                command += (start_time, browser.curr_visit_id,)
+                command += (start_time, browser.curr_site_id,)
             browser.current_timeout = timeout
             # passes off command and waits for a success (or failure signal)
             browser.command_queue.put(command)
@@ -485,11 +493,11 @@ class TaskManager:
                 command_succeeded = -1
                 self.logger.info("BROWSER %i: Timeout while executing command, "
                                  "%s, killing browser manager" % (browser.crawl_id, command[0]))
-
+            '''
             self.sock.send(("INSERT INTO CrawlHistory (crawl_id, command, arguments, bool_success)"
                             " VALUES (?,?,?,?)",
                             (browser.crawl_id, command[0], command_arguments, command_succeeded)))
-
+            '''
             if command_succeeded != 1:
                 '''
                 if command_arguments is not None: 

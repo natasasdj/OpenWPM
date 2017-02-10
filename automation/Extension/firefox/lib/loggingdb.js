@@ -5,8 +5,11 @@ const {Cc, Ci, CC, Cu, components} = require("chrome");
 var socket              = require("./socket.js");
 
 var crawlId= null;
-var visitID = null;
-var visitDomainID = null
+var siteID = null;
+var linkID = null
+var requestID = null
+var responseID = null 
+var cookieID = null
 var debugging = false;
 var sqliteAggregator = null;
 var ldbAggregator = null;
@@ -129,10 +132,10 @@ exports.boolToInt = function(bool) {
 exports.createInsert2 = function(table, update) {
     // Add top url visit id if changed
     while (!debugging && listeningSocket.queue.length != 0) {
-        visitID = listeningSocket.queue.shift();        
+        siteID = listeningSocket.queue.shift();        
     }
 
-    update["visit_id"] = visitID;
+    update["site_id"] = siteID;
 
     var statement = "INSERT INTO " + table + " (";
     var value_str = "VALUES (";
@@ -153,15 +156,27 @@ exports.createInsert = function(table, update) {
     // Add top url visit id if changed
     while (!debugging && listeningSocket.queue.length != 0) {
         visit = listeningSocket.queue.shift();      
-        visitID = visit["visit_id"];
-        visitDomainID  = visit["visit_domain_id"];
+        siteID = visit["site_id"];
+        linkID  = visit["link_id"];
+        requestID = 0; responseID = 0; cookieID = 0;
         noFile = 0;
         
     }
-     
-    update["visit_id"] = visitID;
-    update["visit_domain_id"] = visitDomainID;
-
+    if (table == 'http_requests'){ 
+       requestID += 1; 
+       update["request_id"] = requestID;
+    }
+    if (table == 'http_responses'){ 
+       responseID += 1; 
+       update["response_id"] = responseID;
+    } 
+    if (table == 'cookies'){ 
+       cookieID += 1; 
+       update["cookie_id"] = cookieID
+    }
+    update["site_id"] = siteID;
+    update["link_id"] = linkID;
+    //update["id"] = id
     var statement = "INSERT INTO " + table + " (";
     var value_str = "VALUES (";
         var values = [];
@@ -177,22 +192,24 @@ exports.createInsert = function(table, update) {
 }
 
 
-exports.writeRespBodyIntoFile = function(respBody,type) { 
+exports.writeRespBodyIntoFile = function(respBody,type) {
+/* 
   while (!debugging && listeningSocket.queue.length != 0) {
     visit = listeningSocket.queue.shift();      
     noFile = 0;
-    visitID = visit["visit_id"];
-    visitDomainID  = visit["visit_domain_id"];  
+    siteID = visit["site_id"];
+    linkID  = visit["link_id"]; 
+     
   }; 
-  
+ */ 
     noFile = noFile + 1;
-    var name = "file-" + visitID + "-" + visitDomainID + "-" + noFile;
+    var name = "file-" + siteID + "-" + linkID + "-" + (responseID + 1)//noFile;
     if (type == "html") {
 	name = name + ".html";
     } else if (type == "image") {
         name = name + ".image";
     };
-  var fileName = dataDirectory + "/httpResp/" + "site-" + visitID + "/" + name; 
+  var fileName = dataDirectory + "/httpResp/" + "site-" + siteID + "/" + name; 
   console.log("fileName logg",fileName); 
   aFile.initWithPath(fileName);
   console.log("initialize file",fileName);

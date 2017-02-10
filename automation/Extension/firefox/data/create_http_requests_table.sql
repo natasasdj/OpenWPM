@@ -1,8 +1,7 @@
 CREATE TABLE IF NOT EXISTS http_requests(
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  crawl_id INTEGER NOT NULL,
-  visit_id INTEGER NOT NULL,
-  visit_domain_id INTEGER,
+  site_id INTEGER NOT NULL,
+  link_id INTEGER NOT NULL,
+  request_id INTEGER NOT NULL,
   url TEXT NOT NULL,
   top_level_url TEXT,
   method TEXT NOT NULL,
@@ -18,5 +17,8 @@ CREATE TABLE IF NOT EXISTS http_requests(
   loading_href TEXT,
   req_call_stack TEXT,
   content_policy_type INTEGER NOT NULL,
-  time_stamp TEXT NOT NULL
+  time_stamp TEXT NOT NULL,
+  FOREIGN KEY (site_id) REFERENCES site_visits(site_id),
+  FOREIGN KEY (link_id) REFERENCES site_visits(link_id),
+  PRIMARY KEY (site_id, link_id, request_id)
 );

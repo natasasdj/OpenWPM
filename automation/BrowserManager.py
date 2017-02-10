@@ -41,8 +41,8 @@ class Browser:
         self.db_socket_address = manager_params['aggregator_address']
         self.logger_address = manager_params['logger_address']
         self.crawl_id = browser_params['crawl_id']
-        self.curr_visit_id = None
-        self.curr_visit_domain_id = None 
+        self.curr_site_id = None
+        self.curr_link_id = None 
         self.browser_params = browser_params
         self.manager_params = manager_params
 
@@ -67,14 +67,14 @@ class Browser:
         """ return if the browser is ready to accept a command """
         return self.command_thread is None or not self.command_thread.is_alive()
 
-    def set_visit_id(self, visit_id):
-        self.curr_visit_id = visit_id
+    def set_site_id(self, site_id):
+        self.curr_site_id = site_id
 
-    def set_visit_domain_id(self, new=False):       
+    def set_link_id(self, new=False):       
         if new:
-            self.curr_visit_domain_id = 1
+            self.curr_link_id = 0
         else:
-            self.curr_visit_domain_id += 1
+            self.curr_link_id += 1
         
 
     def launch_browser_manager(self):

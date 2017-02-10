@@ -1,8 +1,7 @@
-CREATE TABLE IF NOT EXISTS javascript_cookies(
-    id INTEGER PRIMARY KEY ASC,
-    crawl_id INTEGER,
-    visit_id INTEGER,
-    visit_domain_id INTEGER,
+CREATE TABLE IF NOT EXISTS cookies(
+    site_id INTEGER NOT NULL,
+    link_id INTEGER NOT NULL,
+    cookie_id INTEGER NOT NULL,
     change TEXT,
     creationTime DATETIME,
     expiry DATETIME,
@@ -18,5 +17,9 @@ CREATE TABLE IF NOT EXISTS javascript_cookies(
     path TEXT,
     policy INTEGER,
     status INTEGER,
-    value TEXT
+    value TEXT,
+    FOREIGN KEY(site_id) REFERENCES site_visits(site_id),
+    FOREIGN KEY(site_id) REFERENCES site_visits(site_id),
+    PRIMARY KEY (site_id, link_id, cookie_id)
+    
 );

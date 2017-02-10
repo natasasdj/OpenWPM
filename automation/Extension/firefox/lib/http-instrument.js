@@ -55,7 +55,7 @@ var httpRequestHandler = function(reqEvent, crawlID) {
   // headers, visit_id [auto-filled], time_stamp
   var update = {};
 
-  update["crawl_id"] = crawlID;
+  //update["crawl_id"] = crawlID;
 
   // Requires FF49+. See Issue #109.
   //update['channel_id'] = httpChannel.channelId;
@@ -349,7 +349,7 @@ var httpResponseHandler = function(respEvent, isCached, crawlID, saveJavascript)
   // time_stamp, content_hash
   var update = {};
 
-  update["crawl_id"] = crawlID;
+  //update["crawl_id"] = crawlID;
 
   // Requires FF49+. See Issue #109.
   //update['channel_id'] = httpChannel.channelId;

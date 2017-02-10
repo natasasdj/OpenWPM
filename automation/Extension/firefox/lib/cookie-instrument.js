@@ -16,7 +16,7 @@ exports.run = function(crawlID) {
         if(data == "deleted" || data == "added" || data == "changed") {
             var update = {};
             update["change"] = loggingDB.escapeString(data);
-            update["crawl_id"] = crawlID;
+            //update["crawl_id"] = crawlID;
 
             var cookie = event.subject.QueryInterface(Ci.nsICookie2);
 
@@ -55,7 +55,7 @@ exports.run = function(crawlID) {
             update["status"] = cookie.status;
             update["value"] = loggingDB.escapeString(cookie.value);
 
-            loggingDB.executeSQL(loggingDB.createInsert("javascript_cookies", update), true);
+            loggingDB.executeSQL(loggingDB.createInsert("cookies", update), true);
         }
     }, true);
 

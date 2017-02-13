@@ -19,6 +19,8 @@ var dataDirectrory = null;
 var listeningSocket = null;
 var noFile=null;
 
+
+
 exports.open = function(sqliteAddress, ldbAddress, dataDir, crawlID) {
     if (sqliteAddress == null && ldbAddress == null && crawlID == '') {
         console.log("Debugging, everything will output to console");
@@ -29,7 +31,6 @@ exports.open = function(sqliteAddress, ldbAddress, dataDir, crawlID) {
     crawlId = crawlID;
     dataDirectory = dataDir;
     console.log("Data dir ", dataDir);
-
     // Connect to databases for saving data
     console.log("Opening socket connections...");
     if (sqliteAddress != null) {
@@ -162,21 +163,31 @@ exports.createInsert = function(table, update) {
         noFile = 0;
         
     }
+
     if (table == 'http_requests'){ 
        requestID += 1; 
        update["request_id"] = requestID;
+       path = dataDirectory + "/../log/req-" + siteID + "-" + linkID + "-" + requestID;
     }
     if (table == 'http_responses'){ 
        responseID += 1; 
        update["response_id"] = responseID;
+       path = dataDirectory + "/../log/res-" + siteID + "-" + linkID + "-" + responseID;
     } 
     if (table == 'cookies'){ 
        cookieID += 1; 
-       update["cookie_id"] = cookieID
+       update["cookie_id"] = cookieID;
+       path = dataDirectory + "/../log/coo-" + siteID + "-" + linkID + "-" + cookieID;
     }
     update["site_id"] = siteID;
     update["link_id"] = linkID;
-    //update["id"] = id
+  /*   
+    var file = fileIO.open(path, 'w');
+    if (!file.closed) {
+        file.write("nesto");
+        file.close()
+    }
+*/
     var statement = "INSERT INTO " + table + " (";
     var value_str = "VALUES (";
         var values = [];
@@ -193,15 +204,17 @@ exports.createInsert = function(table, update) {
 
 
 exports.writeRespBodyIntoFile = function(respBody,type) {
-/* 
+
   while (!debugging && listeningSocket.queue.length != 0) {
     visit = listeningSocket.queue.shift();      
     noFile = 0;
     siteID = visit["site_id"];
     linkID  = visit["link_id"]; 
+    requestID = 0; responseID = 0; cookieID = 0;
+    noFile = 0;
      
   }; 
- */ 
+
     noFile = noFile + 1;
     var name = "file-" + siteID + "-" + linkID + "-" + (responseID + 1)//noFile;
     if (type == "html") {
@@ -212,7 +225,7 @@ exports.writeRespBodyIntoFile = function(respBody,type) {
   var fileName = dataDirectory + "/httpResp/" + "site-" + siteID + "/" + name; 
   console.log("fileName logg",fileName); 
   aFile.initWithPath(fileName);
-  console.log("initialize file",fileName);
+  //console.log("initialize file",fileName);
   aFile.createUnique(Ci.nsIFile.NORMAL_FILE_TYPE, 0600);
   var stream = Cc["@mozilla.org/network/safe-file-output-stream;1"].createInstance(Ci.nsIFileOutputStream);
   stream.init(aFile, 0x04 | 0x08 | 0x20, 0600, 0); // readwrite, create, truncate           

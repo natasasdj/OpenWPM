@@ -72,11 +72,13 @@ def process_query(query, curr, logger):
     executes a query of form (template_string, arguments)
     query is of form (template_string, arguments)
     """
+    
     if len(query) != 2:
         print "ERROR: Query is not the correct length"
         return
     statement = query[0]
     args = list(query[1])
+    
     for i in range(len(args)):
         if type(args[i]) == str:
             args[i] = unicode(args[i], errors='ignore')
@@ -92,6 +94,9 @@ def process_query(query, curr, logger):
         pass
     except ProgrammingError as e:
         logger.error("Unsupported query" + '\n' + str(type(e)) + '\n' + str(e) + '\n' + statement + '\n' + str(args))
+        pass
+    except e:
+        logger.error("Query" + '\n' + str(type(e)) + '\n' + str(e) + '\n' + statement + '\n' + str(args))
         pass
 
 

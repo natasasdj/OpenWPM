@@ -10,15 +10,19 @@ from timeit import default_timer as timer
 from automation.MPLogger import loggingclient
 
 # The list of sites that we wish to crawl
-NUM_BROWSERS = 1 
+NUM_BROWSERS = 20 
 no_start_site = 1
-no_of_sites = 1
+no_of_sites = 100
 
 curr_dir = os.getcwd()
 data_input_dir = curr_dir + '/data/input/'
 data_output_dir_links = curr_dir + '/data/output/links/'
 #alexa_file_name = data_input_dir + 'proba.csv'
 alexa_file_name = data_input_dir + 'top-1m.csv'
+log_dir = curr_dir + '/data/log/'
+
+if not os.path.exists(log_dir):
+    os.makedirs(log_dir)
 
 if not os.path.exists(alexa_file_name):
     if not os.path.exists(data_input_dir):
@@ -49,7 +53,7 @@ manager_params, browser_params = TaskManager.load_default_params(NUM_BROWSERS)
 for i in xrange(NUM_BROWSERS):
    
     browser_params[i]['http_instrument']= True # Record HTTP Requests and Responses
-#    browser_params[i]['headless'] = True
+    browser_params[i]['headless'] = True
     browser_params[i]['cookie_instrument']= True
     browser_params[i]['extension_enabled']= True
     browser_params[i]['disable_flash'] = True #Enable flash for all three browsers
@@ -88,7 +92,7 @@ def browse_site_and_links(site,browser_no,browser):
                 links = f.read().strip().split('\n')
                 l = len(links)
                 for k in range(1,l): 
-                    if k==2: break
+                    #if k==2: break
                     link=links[k]                
                     browser.set_link_id() 
                     #logger.info("browse_site_and_links - BROWSER %i %i - %s %i %i" % (browser_no, browser.browser_params['crawl_id'], link, browser.curr_site_id, browser.curr_link_id))

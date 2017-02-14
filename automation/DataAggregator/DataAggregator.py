@@ -95,7 +95,7 @@ def process_query(query, curr, logger):
     except ProgrammingError as e:
         logger.error("Unsupported query" + '\n' + str(type(e)) + '\n' + str(e) + '\n' + statement + '\n' + str(args))
         pass
-    except e:
+    except Exception as e:
         logger.error("Query" + '\n' + str(type(e)) + '\n' + str(e) + '\n' + statement + '\n' + str(args))
         pass
 

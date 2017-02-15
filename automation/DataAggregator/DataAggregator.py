@@ -2,6 +2,7 @@ from ..SocketInterface import serversocket
 from ..MPLogger import loggingclient
 from sqlite3 import OperationalError
 from sqlite3 import ProgrammingError
+from sqlite3 import IntegrityError 
 import sqlite3
 import time
 import os
@@ -90,14 +91,38 @@ def process_query(query, curr, logger):
         else:
             curr.execute(statement,args)
     except OperationalError as e:
-        logger.error("Unsupported query" + '\n' + str(type(e)) + '\n' + str(e) + '\n' + statement + '\n' + str(args))
+        logger.error("Unsupported query 1" + '\n' + str(type(e)) + '\n' + str(e) + '\n' + statement + '\n' + str(args))
         pass
     except ProgrammingError as e:
-        logger.error("Unsupported query" + '\n' + str(type(e)) + '\n' + str(e) + '\n' + statement + '\n' + str(args))
+        logger.error("Unsupported query 2" + '\n' + str(type(e)) + '\n' + str(e) + '\n' + statement + '\n' + str(args))
         pass
+    except IntegrityError as e:
+        print "1"
+        logger.error("Integrity Error" + '\n' + str(type(e)) + '\n' + str(e) + '\n' + statement + '\n' + str(args))
+        reinsert(query,curr,logger)
     except Exception as e:
-        logger.error("Query" + '\n' + str(type(e)) + '\n' + str(e) + '\n' + statement + '\n' + str(args))
+        logger.error("Exception Error" + '\n' + str(type(e)) + '\n' + str(e) + '\n' + statement + '\n' + str(args))
         pass
+
+def reinsert(query,curr,logger):
+    statement = query[0].lower()
+    args = list(query[1])
+    insert = False
+    if "insert into http_requests" in statement:
+        stat_del = "delete from http_requests where request_id={} and site_id={} and link_id={}".format(args[-3],args[-2],args[-1])
+        insert = True  
+    if "insert into http_responses" in statement:
+        stat_del = "delete from http_requests where response_id={} and site_id={} and link_id={}".format(args[-3],args[-2],args[-1]) 
+        insert = True  
+    if "insert into cookies" in statement:
+        stat_del = "delete from cookies where cookie_id={} and site_id={} and link_id={}".format(args[-3],args[-2],args[-1]) 
+        insert = True
+    if insert == True:
+        logger.info(stat_del)
+        curr.execute(stat_del) 
+        logger.info("reinsert")
+        process_query(query,curr,logger) 
+                
 
 
 def drain_queue(sock_queue, curr, logger):

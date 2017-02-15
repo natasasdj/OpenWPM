@@ -1,18 +1,21 @@
+import sys
 import csv
 import os
 import zipfile
 import cStringIO
 import threading
 import time
+
 from urllib import urlopen
 from automation import TaskManager, CommandSequence
 from timeit import default_timer as timer
 from automation.MPLogger import loggingclient
 
 # The list of sites that we wish to crawl
-NUM_BROWSERS = 20 
-no_start_site = 1
-no_of_sites = 100
+NUM_BROWSERS = int(sys.argv[1])
+no_start_site = int(sys.argv[2])
+no_of_sites = int(sys.argv[3])
+no_of_links = int(sys.argv[4])
 
 curr_dir = os.getcwd()
 data_input_dir = curr_dir + '/data/input/'
@@ -92,7 +95,7 @@ def browse_site_and_links(site,browser_no,browser):
                 links = f.read().strip().split('\n')
                 l = len(links)
                 for k in range(1,l): 
-                    #if k==2: break
+                    if k>no_of_links: break
                     link=links[k]                
                     browser.set_link_id() 
                     #logger.info("browse_site_and_links - BROWSER %i %i - %s %i %i" % (browser_no, browser.browser_params['crawl_id'], link, browser.curr_site_id, browser.curr_link_id))

@@ -112,7 +112,7 @@ def reinsert(query,curr,logger):
         stat_del = "delete from http_requests where request_id={} and site_id={} and link_id={}".format(args[-3],args[-2],args[-1])
         insert = True  
     if "insert into http_responses" in statement:
-        stat_del = "delete from http_requests where response_id={} and site_id={} and link_id={}".format(args[-3],args[-2],args[-1]) 
+        stat_del = "delete from http_responses where response_id={} and site_id={} and link_id={}".format(args[-3],args[-2],args[-1]) 
         insert = True  
     if "insert into cookies" in statement:
         stat_del = "delete from cookies where cookie_id={} and site_id={} and link_id={}".format(args[-3],args[-2],args[-1]) 

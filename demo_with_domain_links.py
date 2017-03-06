@@ -166,7 +166,7 @@ with open(alexa_file_name, 'r') as f:
 
 while counter < no_of_sites:
       logger.info("********** counter %i, sleep for 15 sec **********" % (counter,))
-      time.sleep(5) 
+      time.sleep(15) 
 logger.info("********** counter %i **********" % (counter,))
 end = timer()
 print("Response time:", end - start)

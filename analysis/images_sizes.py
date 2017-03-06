@@ -4,7 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 curr_dir = os.getcwd()
-res_dir = curr_dir + '/results3/'
+res_dir = curr_dir + '/results/'
 db = res_dir + 'images.sqlite'
 conn = sqlite3.connect(db)
 query = 'SELECT * FROM Images'
@@ -12,11 +12,61 @@ df = pd.read_sql_query(query,conn)
 s=df['size'][df['size']!=df['cont_length']]
 l=s.tolist()
 
-fig1 = plt.figure(1)
-plt.hist(df['size'], bins=100, color='lightblue',histtype = 'bar',label ='all')
+'''
+import numpy as np
+
+data = [1.2, 14, 150 ]
+bins = 10**(np.arange(0,4))
+print "bins: ", bins
+plt.xscale('log')
+plt.hist(data,bins=bins)
+ 
+logbins=np.max(xx)*(np.logspace(0, 1, num=1000) - 1)/9
+hh,ee=np.histogram(xx, density=True, bins=logbins)
+'''
+
+
+
+fig = plt.figure()
+bins=range(0,1000)
+plt.hist(df['size'], bins=bins, color='lightblue',histtype = 'bar',label ='all')
+plt.hist(l, bins=bins, color='red',label =r'size $\neq$ content-length')
+plt.legend()
+plt.xscale('semilog')
+plt.yscale('log')
 plt.title('Histogram of Images Sizes, no of sites = 100, max no of links = 300')
 plt.xlabel('size [bytes]')
 plt.ylabel('no of images')
+plt.show()
+
+fig.savefig('figs/size_hist.png',format='png')
+fig.savefig('figs/size_hist.eps',format='eps')
+plt.show()
+
+size_count = df[['size']].groupby(['size']).size()
+size_count.sort_values(inplace = True)
+fig = plt.figure()
+plt.scatter(size_count.index,size_count)
+
+size_length = df[['size','cont_length']].groupby(['size','cont_length']).size()
+size_length.sort_values(inplace = True)
+print size_length.head()
+size = pix_size_count.index.get_level_values(level='size)
+length = pix_size_count.index.get_level_values(level='cont_length')
+size_length_ = size_length[size_length > 0.001*df.shape[0]]
+size_ = size_length_.index.get_level_values(level='size')
+length_ = size_length_.index.get_level_values(level='cont_length')
+
+fig = plt.figure()
+plt.scatter(size, length,cmap=size_length,cmap="coolwarm", edgecolors='none',marker='.')
+plt.xscale('symlog')
+plt.yscale('symlog')
+plt.title(' Size vs Content-Length)
+plt.xlabel('size [bytes]')
+plt.ylabel('content-length [bytes]')
+fig.savefig('figs/size_length.png'
+fig.savefig('figs/size_length.eps')
+
 
 fig2 = plt.figure(2)
 plt.hist(df['size'], bins=100, range=(0,50000), color='lightblue',label ='all')

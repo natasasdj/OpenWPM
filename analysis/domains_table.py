@@ -1,7 +1,11 @@
+import sys
 import sqlite3
 openWPMdir = sys.argv[1]
 file = openWPMdir + 'data/input/top-1m.csv'
-db = openWPMdir + 'analysis/results/images.sqlite'
+res_dir = openWPMdir + 'analysis/results/'
+if not os.path.exists(res_dir):
+    os.makedirs(res_dir)
+db = res_dir + 'images.sqlite'
 fhand = open(file)
 conn = sqlite3.connect(db)
 cur = conn.cursor()

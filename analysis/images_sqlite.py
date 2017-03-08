@@ -16,8 +16,10 @@ import cairo
 #To ensure that *.png file are read
 #ImageFile.LOAD_TRUNCATED_IMAGES = True
 
-curr_dir = os.getcwd()
 data_dir = sys.argv[1]
+no_db = int(data_dir[data_dir.find("_")+1:-3])
+
+curr_dir = os.getcwd()
 data_img_dir = data_dir+'httpResp/'
 res_dir = curr_dir + '/results/'
 if not os.path.exists(res_dir):
@@ -52,7 +54,7 @@ conn = sqlite3.connect(db_file)
 #f1 = open(filename,'a')
 #filename = res_dir +'img_sizes.txt'
 #f2 = open(filename,'a')
-for i in range(1,no_sites+1):    
+for i in range(no_db*100+1,no_db*100+no_sites+1):    
     succ = 0
     j = 0
     print i
@@ -64,7 +66,7 @@ for i in range(1,no_sites+1):
 
 
     for j in range(0,max_no_links+1):
-        print i, j
+        #print i, j
         if j!=0:  
             query = 'SELECT * FROM site_visits WHERE site_id = {0} AND link_id = {1}'.format(i, j)
             df = pd.read_sql_query(query,conn)

@@ -1,4 +1,4 @@
-for i in {0..0}
+for i in {1..1}
 do
     echo $i
     start=${i}01

@@ -1,6 +1,7 @@
 import sqlite3
-file = '/home/nsarafij/project/OpenWPM/data/input/top-1m.csv'
-db = '/home/nsarafij/project/OpenWPM/analysis/results/images.sqlite'
+openWPMdir = sys.argv[1]
+file = openWPMdir + 'data/input/top-1m.csv'
+db = openWPMdir + 'analysis/results/images.sqlite'
 fhand = open(file)
 conn = sqlite3.connect(db)
 cur = conn.cursor()

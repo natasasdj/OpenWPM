@@ -233,7 +233,7 @@ function logWithResponseBody(respEvent, update,type) {
     //console.log("fileName http", fileName);
     update["file_name"] = fileName;
     loggingDB.executeSQL(loggingDB.createInsert("http_responses", update), true);
-    console.log("update ", update); 
+    //console.log("update ", update); 
   }, function(aReason) {
     console.error("Unable to retrieve response body.",aReason);
     loggingDB.executeSQL(loggingDB.createInsert("http_responses", update), true);
@@ -394,14 +394,14 @@ var httpResponseHandler = function(respEvent, isCached, crawlID, saveJavascript)
   }});
   update["headers"] = JSON.stringify(headers);
 // save only image and html
-  
+
   if (isHtml(httpChannel)) {
       logWithResponseBody(respEvent, update,"html");
     //console.log("image image image")
   } else if (isImage(httpChannel)) {
-       logWithResponseBody(respEvent, update,"img");    
+       logWithResponseBody(respEvent, update,"image");    
   } else {
-    loggingDB.executeSQL(loggingDB.createInsert("http_responses", update), true);
+       loggingDB.executeSQL(loggingDB.createInsert("http_responses", update), true);
   }
  
 

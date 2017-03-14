@@ -167,17 +167,17 @@ exports.createInsert = function(table, update) {
     if (table == 'http_requests'){ 
        requestID += 1; 
        update["request_id"] = requestID;
-       path = dataDirectory + "/../log/req-" + siteID + "-" + linkID + "-" + requestID;
+       //path = dataDirectory + "/../log/req-" + siteID + "-" + linkID + "-" + requestID;
     }
     if (table == 'http_responses'){ 
        responseID += 1; 
        update["response_id"] = responseID;
-       path = dataDirectory + "/../log/res-" + siteID + "-" + linkID + "-" + responseID;
+       //path = dataDirectory + "/../log/res-" + siteID + "-" + linkID + "-" + responseID;
     } 
     if (table == 'cookies'){ 
        cookieID += 1; 
        update["cookie_id"] = cookieID;
-       path = dataDirectory + "/../log/coo-" + siteID + "-" + linkID + "-" + cookieID;
+       //path = dataDirectory + "/../log/coo-" + siteID + "-" + linkID + "-" + cookieID;
     }
     update["site_id"] = siteID;
     update["link_id"] = linkID;
@@ -220,7 +220,7 @@ exports.writeRespBodyIntoFile = function(respBody,type) {
     if (type == "html") {
 	name = name + ".html";
     } else if (type == "image") {
-        name = name + ".image";
+        name = name + "";
     };
   var fileName = dataDirectory + "/httpResp/" + "site-" + siteID + "/" + name; 
   console.log("fileName logg",fileName); 

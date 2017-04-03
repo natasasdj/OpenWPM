@@ -14,7 +14,7 @@ def file_hash(fname):
 db_file='/home/nsarafij/project/data/output_001/crawl-data.sqlite'
 conn = sqlite3.connect(db_file)
 
-ferr = '/home/nsarafij/project/hash/err_001.txt'
+ferr = '/home/nsarafij/project/hash/data/err_001.txt'
 ferr_hand = open(ferr, "w")
 
 
@@ -86,9 +86,9 @@ img.sort_values(by='count',ascending=False,inplace=True)
 html.sort_values(by='count',ascending=False,inplace=True)
 
 
-img_out = '/home/nsarafij/project/hash/img_001.txt'
+img_out = '/home/nsarafij/project/hash/data/img_001.txt'
 img_hand = open(img_out, "w")
-html_out = '/home/nsarafij/project/hash/html_001.txt'
+html_out = '/home/nsarafij/project/hash/data/html_001.txt'
 html_hand = open(html_out, "w")
 
 for index, row in img.iterrows():
@@ -101,9 +101,9 @@ img_hand.close()
 html_hand.close()
 
 #change directory
-import os
-os.chdir(path)
-os.getcwd()
+#import os
+#os.chdir(path)
+#os.getcwd()
 
 fig=plt.figure()
 plt.scatter(img['size'],img['count'],marker='o')
@@ -152,9 +152,9 @@ img_save_sort = img_save.sort_values(by = 'saving', ascending =False)
 html_save_sort = html_save.sort_values(by = 'saving', ascending =False)
 
 
-img_out = '/home/nsarafij/project/hash/img_saving_001.txt'
+img_out = '/home/nsarafij/project/hash/data/img_saving_001.txt'
 img_hand = open(img_out, "w")
-html_out = '/home/nsarafij/project/hash/html_saving_001.txt'
+html_out = '/home/nsarafij/project/hash/data/html_saving_001.txt'
 html_hand = open(html_out, "w")
 
 for index, val in img_save.iterrows():
@@ -171,9 +171,9 @@ img_save_sort['cumsum'] = img_save_sort['saving'].cumsum()
 html_save_sort = html_save.sort_values(by='saving', ascending = False)
 html_save_sort['cumsum'] = html_save_sort['saving'].cumsum()
 
-img_out = '/home/nsarafij/project/hash/img_saving_sort_001.txt'
+img_out = '/home/nsarafij/project/hash/data/img_saving_sort_001.txt'
 img_hand = open(img_out, "w")
-html_out = '/home/nsarafij/project/hash/html_saving_sort_001.txt'
+html_out = '/home/nsarafij/project/hash/data/html_saving_sort_001.txt'
 html_hand = open(html_out, "w")
 
 for index, val in img_save_sort.iterrows():
@@ -229,6 +229,10 @@ fig.savefig("figs/img_hash_size_cum_ylin.png",format='png')
 fig.savefig("figs/img_hash_size_cum_ylin.eps",format='eps')
 plt.show()
 
+
+
+
+
 fig=plt.figure()
 plt.scatter(html_save.index, html_save['cumsum'],marker='o')
 plt.title('Disk space saving using the MD5 hashes for html files')
@@ -240,9 +244,78 @@ plt.ylim([-1,0.12*1e10])
 plt.xlim([-1,1e7])
 plt.grid(True)
 fig.savefig("figs/html_hash_size_cum_ylin.png",format='png')
-fig.savefig("figs/html_hash_size_cum)_ylin.eps",format='eps')
+fig.savefig("figs/html_hash_size_cum_ylin.eps",format='eps')
 plt.show()
 
+data_dir = '/home/nsarafij/project/OpenWPM/hash/data/'
+fig_dir = '/home/nsarafij/project/OpenWPM/hash/figs/'
+
+fhand = open(data_dir + 'img_saving_001.txt')
+html_size = []; html_saving = []
+for line in fhand:
+    line.strip()
+    elem = line.split()
+    print elem
+    html_size.append(elem[0])
+    html_saving.append(elem[3])
+
+fig=plt.figure()
+plt.scatter(html_size, html_saving,marker='o')
+plt.title('Disk space saving using the MD5 hashes for html files')
+plt.xscale('symlog')
+#plt.yscale('symlog')
+plt.xlabel('file size [bytes]')
+plt.ylabel('disk space saving [bytes]')
+plt.ylim([-1,0.12*1e10])
+plt.xlim([-1,1e7])
+plt.grid(True)
+fig.savefig(fig_dir + "html_hash_size_cum_ylin.png",format='png')
+fig.savefig(fig_dir + "html_hash_size_cum_ylin.eps",format='eps')
+plt.show()
+
+
+data_dir = '/home/nsarafij/project/OpenWPM/hash/data/'
+fig_dir = '/home/nsarafij/project/OpenWPM/hash/figs/'
+df = pd.read_csv(data_dir + 'img_001.txt', sep=' ',header = None)
+df=df[[0,1,2]]
+df.columns=['size','count','file']
+
+fig=plt.figure()
+plt.scatter(df['size'],df['count'],marker='.',color='blue')
+plt.title('Images with the same MD5 hashes')
+plt.xscale('symlog')
+plt.yscale('symlog')
+plt.xlabel('file size [bytes]')
+plt.ylabel('count')
+plt.xlim([-1,1e6])
+plt.ylim([0,1e5])
+plt.grid(True)
+fig.savefig(fig_dir + "img_hash_size.png",format='png')
+fig.savefig(fig_dir + "img_hash_size.eps",format='eps')
+plt.show()
+
+
+data_dir = '/home/nsarafij/project/OpenWPM/hash/data/'
+fig_dir = '/home/nsarafij/project/OpenWPM/hash/figs/'
+df = pd.read_csv(data_dir + 'html_001.txt', sep=' ',header = None)
+df=df[[0,1,2]]
+df.columns=['size','count','file']
+fig=plt.figure()
+plt.scatter(df['size'],df['count'],marker='.',color='blue')
+plt.title('Html files with the same MD5 hashes')
+plt.xscale('symlog')
+plt.yscale('symlog')
+plt.xlabel('file size [bytes]')
+plt.ylabel('count')
+plt.xlim([-1,1e9])
+plt.ylim([0,1e5])
+plt.grid(True)
+fig.savefig(fig_dir + "html_hash_size.png",format='png')
+fig.savefig(fig_dir + "html_hash_size.eps",format='eps')
+plt.show()
+
+
+    
 
 
 

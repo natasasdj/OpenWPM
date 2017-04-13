@@ -3,18 +3,20 @@ Minimal Example
 ===============
 """
 import os
+import sys
 from wordcloud import WordCloud
+import matplotlib.pyplot as plt
 
-output_dir = '/home/nsarafij/project/OpenWPM/analysis_redirect/output/'
-keys_file = open(os.path.join(output_dir, 'keys'))
+keys_file = open(sys.argv[1])
+#keys_file = open(file)
 
 # Read the whole text
 text = keys_file.read()
-text.
+print text
 
 
 # Generate a word cloud image
-wordcloud = WordCloud().generate(text)
+#wordcloud = WordCloud().generate(text)
 
 
 # Display the generated image:
@@ -23,12 +25,12 @@ fig_dir = '/home/nsarafij/project/OpenWPM/analysis_redirect/output/figs'
 if not os.path.exists(fig_dir):
     os.makedirs(fig_dir)
 
-import matplotlib.pyplot as plt
-plt.imshow(wordcloud, interpolation='bilinear')
-plt.axis("off")
+
+#plt.imshow(wordcloud, interpolation='bilinear')
+#plt.axis("off")
 
 # lower max_font_size
-wordcloud = WordCloud(max_font_size=40).generate(text)
+wordcloud = WordCloud(max_font_size=40,collocations=False).generate(text)
 plt.figure()
 plt.imshow(wordcloud, interpolation="bilinear")
 plt.axis("off")

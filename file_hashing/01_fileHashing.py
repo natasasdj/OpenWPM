@@ -103,7 +103,7 @@ def checkFile(siteID, linkID, respID, filename,filedir):
         query = 'UPDATE {} SET count = {} WHERE site_id = {} and link_id = {} and resp_id = {}'.format(fileDB,df['count'][0] + 1,f[1],f[2],f[3])
         #print query
         cur1.execute(query)
-    conn1.commit()    
+        
        
 
 def purge(directory, pattern):
@@ -117,7 +117,7 @@ for i in range(no_db*100+3,no_db*100+no_sites+1):  #no_sites+1
     query = 'SELECT * FROM site_visits WHERE site_id = {0}'.format(i,)
     df = pd.read_sql_query(query,conn)
     file_dir = os.path.join(data_dir, 'httpResp','site-'+str(i))
-    for index, row in df.iterrows():  
+    for index, row in df.iterrows():      
         if row['link_id']==0:
             if pd.isnull(row['resp_time_3']): 
                 #print "**************** resp_time_3 is null **********************"
@@ -129,12 +129,14 @@ for i in range(no_db*100+3,no_db*100+no_sites+1):  #no_sites+1
                 #print "**************** resp_time_2 is null **********************", row['site_id'], row['link_id']
                 purge(file_dir,"file-"+str(row['site_id'])+"-"+str(row['link_id'])+"-\d+") 
                 continue
+        
         query = 'SELECT * FROM http_responses WHERE site_id = {0} AND link_id = {1}'.format(row['site_id'],row['link_id'])
         df2 = pd.read_sql_query(query,conn)
+
         for index2, row2 in df2.iterrows():
             if pd.isnull(row2['file_name']): continue
             checkFile(row2['site_id'],row2['link_id'],row2['response_id'],row2['file_name'],file_dir)
-        
+    conn1.commit()    
 
 
 '''

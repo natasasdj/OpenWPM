@@ -7,7 +7,10 @@ import sys
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 
+input_dir = '/home/nsarafij/project/OpenWPM/analysis_redirect/'
+input_file = sys.argv[1]
 keys_file = open(sys.argv[1])
+output_file = 
 #keys_file = open(file)
 
 # Read the whole text
@@ -34,7 +37,7 @@ wordcloud = WordCloud(max_font_size=40,collocations=False).generate(text)
 plt.figure()
 plt.imshow(wordcloud, interpolation="bilinear")
 plt.axis("off")
-plt.savefig(os.path.join(fig_dir, 'keys_worldCloud.png'))
+plt.savefig(os.path.join(fig_dir, output_file) + '.png'))
 plt.show()
 
 keys_file.close()

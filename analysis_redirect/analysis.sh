@@ -5,10 +5,13 @@
 # no of browsers, no of start site, no of sites, no of links
 
 main_dir="/root/"
-for i in {11..14}
+echo $main_dir
+for i in {10..46}
 do
     echo $i
     data_dir=${main_dir}data/output_${i}01/
     echo $data_dir
-    python ${main_dir}OpenWPM/file_hashing/01_fileHashing.py $main_dir $data_dir
+    redir_dir=${main_dir}OpenWPM/analysis_redirect/
+    echo ${redir_dir}01_urls.py
+    python ${redir_dir}01_urls.py $main_dir $data_dir
 done

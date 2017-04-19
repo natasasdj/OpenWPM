@@ -7,14 +7,14 @@ import bz2
 import re
 import sys
 
-#main_dir = sys.argv[1]
-#data_dir = sys.argv[2]
-main_dir = '/home/nsarafij/project/'
-data_dir = main_dir + 'data/output_4701/'
+main_dir = sys.argv[1]
+data_dir = sys.argv[2]
+#main_dir = '/home/nsarafij/project/'
+#data_dir = main_dir + 'data/output_4701/'
 no_db = int(data_dir[data_dir.find("_")+1:-3])
-
+print no_db
 #hash_dir = sys.argv[2]
-hash_dir = main_dir + 'OpenWPM/file_hashing/db'
+hash_dir = os.path.join(main_dir, 'OpenWPM/file_hashing/db')
 if not os.path.exists(hash_dir):
     os.makedirs(hash_dir)
 db_path = os.path.join(hash_dir, 'hashImage.ldb')
@@ -35,7 +35,8 @@ cur1.execute('CREATE TABLE IF NOT EXISTS Htmls \
 		 count INTEGER, file TEXT)')
 
 
-db_file = data_dir + 'crawl-data.sqlite'
+db_file = os.path.join(data_dir, 'crawl-data.sqlite')
+print db_file
 conn = sqlite3.connect(db_file)
 
 no_sites = 100

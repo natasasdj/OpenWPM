@@ -1,11 +1,12 @@
 import sqlite3
 import pandas as pd
 import os
+import sys
 
-
-#data_dir = sys.argv[1]
-main_dir = '/home/nsarafij/project/'
-data_dir = os.path.join(main_dir,'data/output_001/')
+main_dir = sys.argv[1]
+#main_dir = '/home/nsarafij/project/'
+data_dir = sys.argv[2]
+#data_dir = os.path.join(main_dir,'data/output_001/')
 #output_dir = sys.argv[2]
 output_dir = os.path.join(main_dir,'OpenWPM/analysis_redirect/output/')
 anal_dir = os.path.join(main_dir,'OpenWPM/analysis/results/')

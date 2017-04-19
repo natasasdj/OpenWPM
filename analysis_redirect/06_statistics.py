@@ -48,9 +48,12 @@ for line in fhand:
                 keys_dict[key] = keys_dict[key] + 1
                 line_keys[key] = 1
                 
- 
-     
+
+
+
 fhand.close()
+
+     
 
 #keysDict_sorted = sorted(keys_dict.items(), key=operator.itemgetter(1), reverse = True)
 
@@ -76,9 +79,9 @@ plt.grid(True)
 plt.savefig(os.path.join(fig_dir, 'keysPersistPerRedirect_worldCloud.png'))
 plt.show()
 
-
-
-
-
 conn2.close()
+
+
+df = pd.DataFrame.from_csv('/home/nsarafij/project/OpenWPM/analysis_redirect/output/no_redirects')
+
 

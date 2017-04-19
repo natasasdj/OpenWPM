@@ -1,65 +1,77 @@
 import os
 import sets
+import re
 
 output_dir = '/home/nsarafij/project/OpenWPM/analysis_redirect/output/'
 params_file = open(os.path.join(output_dir, 'params'))
 keysPersist_file = open(os.path.join(output_dir, 'keysPersist'),'a')
 keys_file = open(os.path.join(output_dir, 'keys'),'a')
 
-firstLine = True
-#k = 0
-line_write = False
-linePersist_write = False
-site_id = 0
+
+k = 0
+
+#site_id = 0
 for line in params_file:
+    print line
     line_write = False
     linePersist_write = False
-    #if k==2: break
-    line = line.rstrip("\n")
+    #if k==3: break
+    #line = line.rstrip("\n")
     #print line
-    if line == '': continue
+    if line == '' or re.match('\s+',line): continue
     line_split = line.split(" & ")
-    params = line_split[1:]
+    print line_split
+    params = line_split
     #print line
     #print line_split[0]
     #print line_split[0].split(" ")  
-    if site_id != int(line_split[0].split(" ")[0]):
-        site_id = int(line_split[0].split(" ")[0])
-        print site_id   
+    #if site_id != int(line_split[0].split(" ")[0]):
+    #    site_id = int(line_split[0].split(" ")[0])
+    #    print site_id   
     #print params
-    keys_values_all = sets.Set()
-    key_write = False
-    keyPersist_write = False
-    key_write = False
-    keyPersist_write = False        
-    for p in params:
+    keys_values_all = sets.Set()        
+    for param in params:
+        print param
+        p = param.split(" ")
+        key_write = False
+        keyPersist_write = False   
         #print p
-        if p == "": continue
-        keys_values = p.split(" ")
+        if p[3] == "*": continue
+        keys_values = p[4:]
         for key_value in keys_values:
-            #print key_write, keyPersist_write
+            print key_value
+            #print key_write, keyPersist_write            
             if key_write:  
                 keys_file.write(' ')
-                #print "key write space" 
-                line_write = True
-            if keyPersist_write:  
-                keysPersist_file.write(' ')
-                #print "key persist write space"
-                linePersist_write = True 
+                #print "key write space"                
+            else:
+                if line_write: 
+                     keys_file.write(' & ') 
+                else: 
+                     line_write = True
+                keys_file.write(p[3] + ' ')
+                key_write = True
+                 
             key = key_value.split("=")[0]
             keys_file.write(key)
-            key_write = True
             if key_value in keys_values_all:
+                print keyPersist_write, key_value
+                if keyPersist_write:  
+                    keysPersist_file.write(' ')
+                else:
+                    if linePersist_write:
+                        keysPersist_file.write(' ')
+                    else:
+                        linePersist_write = True
+                    keyPersist_write = True                   
+                print key 
                 keysPersist_file.write(key)
-                #print "key persist write True"
-                keyPersist_write = True
+                #print "key persist write True"               
             else:
-                keys_values_all.add(key_value)
-                keyPersist_write = False
-        
+                keys_values_all.add(key_value)             
     if line_write: keys_file.write("\n")
     if linePersist_write: keysPersist_file.write("\n")                     
-    #k += 1
+    k += 1
     
 
 params_file.close()

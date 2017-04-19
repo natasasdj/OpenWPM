@@ -40,11 +40,11 @@ for ind, row in df.iterrows():
                 #s += '\n' 
             #print "****",row['url'], row['location']
             #urls_file.write(str(row['site_id']) + ' ' + str(row['link_id']) + ' ' + row['url'] + ' ' + row['location'])
-            s += str(row['site_id']) + ' ' + str(row['link_id']) + ' ' + str(row['response_id']) + ' ' + row['url'] + ' ' + row['location']             
+            s += str(row['site_id']) + ' ' + str(row['link_id']) + ' ' + str(row['response_id']) + ' ' + row['url']             
             prev_link = (row['site_id'], row['link_id'])            
         else:
             #urls_file.write(' ' + row['location']) 
-            s += ' ' + row['location']
+            s += ' ' + str(row['site_id']) + ' ' + str(row['link_id']) + ' ' + str(row['response_id']) + ' ' +  row['url']
             #print row['location']
             #if row['url'] != prev_location: print "error"
         prev_location = row['location']
@@ -58,6 +58,7 @@ for ind, row in df.iterrows():
                 #print df2
                 if (not df2.shape[0] == 0) and df2['pixels'][0]==1: 
                     print row['site_id'], row['link_id'], row['response_id']
+                    s += ' ' + str(row['site_id']) + ' ' + str(row['link_id']) + ' ' + str(row['response_id']) + ' ' +  row['url']
                     urls_file.write(s+'\n')
          
                  

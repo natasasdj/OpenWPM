@@ -6,6 +6,7 @@ import hashlib
 import bz2
 import re
 import sys
+from timeit import default_timer as timer
 
 main_dir = sys.argv[1]
 data_dir = sys.argv[2]
@@ -61,16 +62,18 @@ def bzip2_decompress(fpath):
     fh.close()
 
 def checkFile(siteID, linkID, respID, filename,filedir):
-    print siteID, linkID, respID
+    #print siteID, linkID, respID
     filepath = os.path.join(filedir,filename)
     zipped = False
+    if os.path.islink(filepath): return
     if not os.path.exists(filepath):
         if ("html" in filename) and os.path.exists(filepath+'.bz2'):
             #print "*** file is already zipped ***"
             zipped = True
         if not zipped: 
             #print "there is no file", filename
-            return 
+            return
+    if os.path.islink(filepath): return 
     if zipped:
        bzip2_decompress(filepath+'.bz2')
     if "html" in filename:
@@ -80,7 +83,8 @@ def checkFile(siteID, linkID, respID, filename,filedir):
         hashDB = hashImage
         fileDB = 'Images'       
     filehash = file_hash(filepath)
-    if hashDB.get(filehash) is None:
+    fname = hashDB.get(filehash.encode('utf8'))
+    if fname is None:
         # put hash into hashHtml or hashImage level db
         hashDB.put(filehash.encode('utf8'),filename.encode('utf8'))
         query = 'INSERT INTO {} (site_id, link_id, resp_id, count, file) VALUES({},{},{},{},{})'.format(fileDB,siteID,linkID,respID,1, '"'+filename+'"')
@@ -88,13 +92,14 @@ def checkFile(siteID, linkID, respID, filename,filedir):
         cur1.execute(query)
         if ("html" in filename): 
             if not zipped: bzip2(filepath)
-            os.remove(filepath) 
+            os.remove(filepath)
+    elif fname == filename:
+         return 
     else:       
-        # create symlink
-        fname = hashDB.get(filehash.encode('utf8'))
+        # create symlink        
         f = fname.rstrip(".html").split("-")
         fpath = os.path.join(main_dir, 'data', 'output_' + str((int(f[1])-1)/100) + '01','httpResp/site-' + f[1], fname)        
-        os.remove(filepath) 
+        os.remove(filepath)        
         if ("html" in filename): 
             os.symlink(fpath+'.bz2',filepath)
         else:
@@ -113,12 +118,22 @@ def purge(directory, pattern):
             #print "*************************** purge ****************************************", f
             os.remove(os.path.join(directory, f))
 
-for i in range(no_db*100+3,no_db*100+no_sites+1):  #no_sites+1 
+f1 = open(os.path.join(hash_dir,'test1'),'a')
+f2 = open(os.path.join(hash_dir,'test2'),'a')
+f3 = open(os.path.join(hash_dir,'test3'),'a')
+
+for i in range(no_db*100+1,no_db*100+no_sites+1):  #no_sites+1 
     print "site:", i 
+    t1 = timer()
     query = 'SELECT * FROM site_visits WHERE site_id = {0}'.format(i,)
     df = pd.read_sql_query(query,conn)
     file_dir = os.path.join(data_dir, 'httpResp','site-'+str(i))
-    for index, row in df.iterrows():      
+    if not os.path.exists(file_dir): continue
+    t2=timer()
+    f1.write(str(t2-t1) + ' ')  
+    for index, row in df.iterrows(): 
+        t3 = timer()
+        f2.write(str(row['site_id'])+" "+str(row['link_id'])+ ' ')             
         if row['link_id']==0:
             if pd.isnull(row['resp_time_3']): 
                 #print "**************** resp_time_3 is null **********************"
@@ -130,14 +145,28 @@ for i in range(no_db*100+3,no_db*100+no_sites+1):  #no_sites+1
                 #print "**************** resp_time_2 is null **********************", row['site_id'], row['link_id']
                 purge(file_dir,"file-"+str(row['site_id'])+"-"+str(row['link_id'])+"-\d+") 
                 continue
-        
+        t4 = timer() 
+        f2.write(str(t4-t3) + ' ')
+        t4b = timer()
         query = 'SELECT * FROM http_responses WHERE site_id = {0} AND link_id = {1}'.format(row['site_id'],row['link_id'])
         df2 = pd.read_sql_query(query,conn)
-
+        t5 = timer() 
+        f2.write(str(t5-t4b) + '\n')
         for index2, row2 in df2.iterrows():
             if pd.isnull(row2['file_name']): continue
+            t6 = timer()
             checkFile(row2['site_id'],row2['link_id'],row2['response_id'],row2['file_name'],file_dir)
-    conn1.commit()    
+            t7 = timer()
+            f3.write(str(row2['site_id'])+' '+str(row2['link_id'])+ ' '+str(row2['response_id'])+' ') 
+            f3.write(str(t7-t6) + '\n')
+    conn1.commit()
+    t8 = timer()
+    f1.write(str(t8-t7) + '\n')    
+     
+
+f1.close()
+f2.close()
+f3.close()
 
 
 '''
@@ -156,4 +185,5 @@ hashImage.close()
 conn1.close()
 
 conn.close()
+
 

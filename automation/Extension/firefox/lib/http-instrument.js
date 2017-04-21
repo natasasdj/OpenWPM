@@ -232,6 +232,7 @@ function logWithResponseBody(respEvent, update,type) {
     fileName = loggingDB.writeRespBodyIntoFile(respBody,type);
     //console.log("fileName http", fileName);
     update["file_name"] = fileName;
+    
     loggingDB.executeSQL(loggingDB.createInsert("http_responses", update), true);
     //console.log("update ", update); 
   }, function(aReason) {
@@ -240,7 +241,7 @@ function logWithResponseBody(respEvent, update,type) {
   }).catch(function(aCatch) {
     console.error('Unable to retrieve response body.',
         'Likely caused by a programming error. Error Message:', aCatch);
-    update["content_hash"] = "<error>";
+    //update["content_hash"] = "<error>";
     loggingDB.executeSQL(loggingDB.createInsert("http_responses", update), true);
   });
 }

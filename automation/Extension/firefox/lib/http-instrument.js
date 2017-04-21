@@ -232,7 +232,6 @@ function logWithResponseBody(respEvent, update,type) {
     fileName = loggingDB.writeRespBodyIntoFile(respBody,type);
     //console.log("fileName http", fileName);
     update["file_name"] = fileName;
-    
     loggingDB.executeSQL(loggingDB.createInsert("http_responses", update), true);
     //console.log("update ", update); 
   }, function(aReason) {

@@ -130,7 +130,7 @@ for i in range(no_db*100+1,no_db*100+no_sites+1):  #no_sites+1
     file_dir = os.path.join(data_dir, 'httpResp','site-'+str(i))
     if not os.path.exists(file_dir): continue
     t2=timer()
-    f1.write(str(t2-t1) + ' ')  
+    f1.write(str(i)+str(t2-t1) + ' ')  
     for index, row in df.iterrows(): 
         t3 = timer()
         f2.write(str(row['site_id'])+" "+str(row['link_id'])+ ' ')             
@@ -161,7 +161,7 @@ for i in range(no_db*100+1,no_db*100+no_sites+1):  #no_sites+1
             f3.write(str(t7-t6) + '\n')
     conn1.commit()
     t8 = timer()
-    f1.write(str(t8-t7) + '\n')    
+    f1.write(str(t8-t1) + '\n')    
      
 
 f1.close()

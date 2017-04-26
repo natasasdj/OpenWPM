@@ -52,7 +52,7 @@ for line in queries_file:
                     if http_part_match:
                         nested_key=http_part_match.group(6)
                        #print nested_key
-                    nested_value.replace(" ","%20")..replace("\n","%0A").replace("\xc2\xa0","%C2%A0")
+                    nested_value.replace(" ","%20").replace("\n","%0A").replace("\xc2\xa0","%C2%A0")
                     paramsNested_file.write(' ' + key_append + nested_key + "=" + nested_value )
                     params_file.write(' ' + nested_key + "=" + nested_value)
             else:

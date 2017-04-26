@@ -1,8 +1,10 @@
 import os
 import sets
 import re
+import sys
 
-output_dir = '/home/nsarafij/project/OpenWPM/analysis_redirect/output/'
+main_dir = sys.argv[1]
+output_dir = os.path.join(sys.argv[1],'OpenWPM/analysis_redirect/output/')
 params_file = open(os.path.join(output_dir, 'params'))
 keysPersist_file = open(os.path.join(output_dir, 'keysPersist'),'a')
 keys_file = open(os.path.join(output_dir, 'keys'),'a')

@@ -2,8 +2,10 @@ import os
 import sets
 import urlparse
 import re
+import sys
 
-output_dir = '/home/nsarafij/project/OpenWPM/analysis_redirect/output/'
+main_dir = sys.argv[1]
+output_dir = os.path.join(sys.argv[1],'OpenWPM/analysis_redirect/output/')
 queries_file = open(os.path.join(output_dir, 'queries'))
 params_file = open(os.path.join(output_dir, 'params'),'a')
 paramsNested_file = open(os.path.join(output_dir, 'paramsNested'),'a')
@@ -41,19 +43,22 @@ for line in queries_file:
             if query_match:
                 value = query_match.group()
                 #q = urlparse.parse_qsl(q)
+                value.replace(" ","%20").replace("\n","%0A").replace("\xc2\xa0","%C2%A0")
                 key_append = key_append + key + '#'
-                params_file.write(key + '=' + value.replace(" ","%20").replace("\xc2\xa0","%C2%A0"))
+                params_file.write(key + '=' + value)
                 nested_params_list = urlparse.parse_qsl(urlparse.urlparse(value).query)
                 for nested_key,nested_value in nested_params_list:
                     http_part_match = re.match('(https?((://)|(%3A%2F%2F))(.*?)\?)+(.*)(#|$)',nested_key)
                     if http_part_match:
                         nested_key=http_part_match.group(6)
                        #print nested_key
-                    paramsNested_file.write(' ' + key_append + nested_key + "=" + nested_value.replace(" ","%20").replace("\xc2\xa0","%C2%A0"))
-                    params_file.write(' ' + nested_key + "=" + nested_value.replace(" ","%20").replace("\xc2\xa0","%C2%A0"))
+                    nested_value.replace(" ","%20")..replace("\n","%0A").replace("\xc2\xa0","%C2%A0")
+                    paramsNested_file.write(' ' + key_append + nested_key + "=" + nested_value )
+                    params_file.write(' ' + nested_key + "=" + nested_value)
             else:
-                paramsNested_file.write(key_append + key + '=' + value.replace(" ","%20").replace("\xc2\xa0","%C2%A0")) 
-                params_file.write(key + '=' + value.replace(" ","%20").replace("\xc2\xa0","%C2%A0"))
+                value.replace(" ","%20").replace("\n","%0A").replace("\xc2\xa0","%C2%A0")
+                paramsNested_file.write(key_append + key + '=' + value) 
+                params_file.write(key + '=' + value)
     #k += 1
     
 

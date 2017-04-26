@@ -29,7 +29,8 @@ urls_file = open(os.path.join(output_dir, 'urls'),'a')
 prev_link = None
 prev_location = None
 prev_redirect = False
-for ind, row in df.iterrows():        
+for ind, row in df.iterrows(): 
+    #row['site_id']       
     if 300 <= row['response_status'] < 400:
         if prev_link != (row['site_id'], row['link_id']) or row['url'] != prev_location: 
             s=""
@@ -58,7 +59,7 @@ for ind, row in df.iterrows():
                 df2 = pd.read_sql_query(query,conn2)
                 #print df2
                 if (not df2.shape[0] == 0) and df2['pixels'][0]==1: 
-                    print row['site_id'], row['link_id'], row['response_id']
+                    #print row['site_id'], row['link_id'], row['response_id']
                     s += ' ' + str(row['site_id']) + ' ' + str(row['link_id']) + ' ' + str(row['response_id']) + ' ' +  row['url']
                     urls_file.write(s+'\n')
          

@@ -1,8 +1,10 @@
 import os
 import re
 from urlparse import urlparse
+import sys
 
-output_dir = '/home/nsarafij/project/OpenWPM/analysis_redirect/output/'
+main_dir = sys.argv[1]
+output_dir = os.path.join(sys.argv[1],'OpenWPM/analysis_redirect/output/')
 urls_file = open(os.path.join(output_dir, 'urls'))
 
 queries_file = open(os.path.join(output_dir, 'queries'),'a')

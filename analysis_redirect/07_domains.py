@@ -1,8 +1,9 @@
 import os
 import sets
 import operator
+import sys
 
-main_dir = '/home/nsarafij/project/'
+main_dir = sys.argv[1]
 output_dir = os.path.join(main_dir,'OpenWPM/analysis_redirect/output/')
 
 def domains_line(key,line):
@@ -21,35 +22,34 @@ def domains_file(key):
     keys_fhand.close()
     return domains
 
-fhand = open(os.path.join(output_dir,'keysPersist'))
-keys_dict = dict()
-for line in fhand:
-    line_keys = dict()
-    keys = line.rstrip().split()
-    #print keys
-    for key in keys:
-        if key not in keys_dict:
-            keys_dict[key] = 1
-            line_keys[key] = 1
-        elif key not in line_keys:
-                keys_dict[key] = keys_dict[key] + 1
-                line_keys[key] = 1
+with open(os.path.join(output_dir,'keysPersist')) as fhand:
+	keys_dict = dict()
+	for line in fhand:
+	    line_keys = dict()
+	    keys = line.rstrip().split()
+	    #print keys
+	    for key in keys:
+		if key not in keys_dict:
+		    keys_dict[key] = 1
+		    line_keys[key] = 1
+		elif key not in line_keys:
+		        keys_dict[key] = keys_dict[key] + 1
+		        line_keys[key] = 1
                 
-fhand.close()
 
 keysDict_sorted = sorted(keys_dict.items(), key=operator.itemgetter(1), reverse = True)
 keys,values = zip(*keysDict_sorted)
 
 
-domains_fhand = open(os.path.join(output_dir,'domains'),'a')
-for key in keys:
-    domains_fhand.write(key + ' *')
-    domains = domains_file(key)
-    for domain in domains:
-        domains_fhand.write(' ' + domain)
-    domains_fhand.write('\n') 
+open(os.path.join(output_dir,'domains'),'a') as domains_fhand:
+	for key in keys:
+	    domains_fhand.write(key + ' *')
+	    domains = domains_file(key)
+	    for domain in domains:
+		domains_fhand.write(' ' + domain)
+	    domains_fhand.write('\n') 
 
-domains_fhand.close()
+
     
 
                   

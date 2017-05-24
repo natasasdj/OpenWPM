@@ -43,7 +43,6 @@ fig.subplots_adjust(hspace=.4)
 ax=plt.subplot(221)
 ax.set_title("CDF of Response Time 1")
 ax.set_xlabel('time [s]')
-
 plt.step(x1,y1)
 
 ax=plt.subplot(222)

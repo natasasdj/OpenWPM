@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 import numpy as np
 from matplotlib.ticker import FuncFormatter
+from statsmodels.distributions.empirical_distribution import ECDF
 
 def thousands(x, pos):
     if x>=1e9:
@@ -19,11 +20,13 @@ def thousands(x, pos):
 
 formatter = FuncFormatter(thousands)
 
-res_dir = '/home/nsarafij/project/OpenWPM/analysis/results/'
+main_dir = '/home/nsarafij/project/OpenWPM/analysis/'
+res_dir = os.path.join(main_dir,'results/')
 db = res_dir + 'images.sqlite'
 conn = sqlite3.connect(db)
 query = 'SELECT * FROM Images'
 df = pd.read_sql_query(query,conn)
+df.shape[0]#31861758
 s=df['size'][df['size']!=df['cont_length']]
 l=s.tolist()
 
@@ -37,20 +40,71 @@ size_count_2 = size_count_[size_count_>0.1]
 
 # Histogram of images sizes
 
+fig_dir = os.path.join(main_dir,'figs_10k/')
+
 fig = plt.figure()
-bins=range(0,1000)
-plt.hist(df['size'], bins=bins, color='lightblue',histtype = 'bar',label ='all')
-plt.hist(l, bins=bins, color='red',label =r'size $\neq$ content-length')
+binwidth = 100
+bins = range(df['size'].min(), df['size'].max() + binwidth, binwidth)
+plt.hist(df['size'], bins=bins, color='lightblue', histtype = 'bar',label ='all')
+plt.hist(l, color='red', bins=bins, label =r'size $\neq$ content-length')
+plt.legend()
+plt.xscale('symlog')
+#plt.yscale('log')
+plt.title('Histogram of Images Sizes, no of sites = 100, max no of links = 300')
+plt.xlabel('file size [bytes]')
+plt.ylabel('no of images')
+fig.savefig(os.path.join(fig_dir,'01a_size_hist.png'),format='png')
+plt.show()
+
+fig = plt.figure()
+binwidth = 100
+bins = range(df['size'].min(), df['size'].max() + binwidth, binwidth)
+plt.hist(df['size'], bins=bins, color='lightblue', histtype = 'bar',label ='all')
+plt.hist(l, color='red', bins=bins, label =r'size $\neq$ content-length')
 plt.legend()
 plt.xscale('symlog')
 plt.yscale('log')
 plt.title('Histogram of Images Sizes, no of sites = 100, max no of links = 300')
 plt.xlabel('file size [bytes]')
 plt.ylabel('no of images')
-#plt.show()
-fig.savefig('figs/size_hist.png',format='png')
-fig.savefig('figs/size_hist.eps',format='eps')
+fig.savefig(os.path.join(fig_dir,'01a_size_hist_log.png'),format='png')
+plt.show()
 
+# Cumulative distribution of images sizes
+
+
+def ecdf_for_plot(sample):
+    #x = np.linspace(min(sample), max(sample))
+    print "sample: ",type(sample)
+    x = sample.sort_values(ascending = False)
+    ecdf = ECDF(x)
+    # print ecdf
+    print "ecdf: ",type(ecdf)
+    y = ecdf(x)
+    #print y
+    print "y: ", type(y)
+    return (x,y)    
+    
+(x,y) = ecdf_for_plot(df['size'])
+
+plt.figure()
+plt.step(x,y)
+plt.title('CDF of the file size of images')
+plt.xlabel('size [bytes]')
+plt.grid(True)
+plt.xscale('symlog')
+plt.savefig(os.path.join(fig_dir,'01b_size_cdf.png'))
+plt.show()
+
+fig, ax = plt.subplots()
+plt.step(x,y)
+plt.title('CDF of the file size of images')
+plt.xlabel('size [bytes]')
+plt.grid(True)
+plt.xlim([0,1e5])
+ax.yaxis.set_major_formatter(formatter)
+plt.savefig(os.path.join(fig_dir,'01b_size_cdf_lin.png'))
+plt.show()
 
 # Size counts of images
 
@@ -64,8 +118,7 @@ plt.yscale('log')
 plt.xlim([-0.5,1e7])
 plt.grid(True)
 #plt.show()
-fig.savefig('figs/size_count.png',format='png')
-fig.savefig('figs/size_count.eps',format='eps')
+fig.savefig(os.path.join(fig_dir,'01c_size_count.png'),format='png')
 
 fig = plt.figure()
 plt.scatter(size_count.index,size_count,marker='.',color = 'blue', alpha=0.5)
@@ -75,8 +128,7 @@ plt.xlim([-1000,6*1e4])
 plt.ylim([0,1e3])
 plt.grid(True)
 #plt.show()
-fig.savefig(fig_dir+'size_count_lin.png',format='png')
-fig.savefig(fig_dir+'size_count_lin.eps',format='eps')
+fig.savefig(os.path.join(fig_dir,'01c_size_count_lin.png'),format='png')
 
 fig = plt.figure()
 plt.scatter(size_count.index,size_count,marker='.',color = 'blue', alpha=0.5)
@@ -87,8 +139,8 @@ plt.xlim([0,3000])
 plt.ylim([0,2000])
 plt.grid(True)
 #plt.show()
-fig.savefig(fig_dir+'size_count_lin2.png',format='png')
-fig.savefig(fig_dir+'size_count_lin2.eps',format='eps')
+fig.savefig(os.path.join(fig_dir,'01c_size_count_lin2.png'),format='png')
+
 
 
 # Size percentages of images
@@ -103,8 +155,7 @@ plt.xlim([-1,1e7])
 plt.ylim([1e-6,100])
 plt.grid(True)
 #plt.show()
-fig.savefig('figs/size_perc.png',format='png')
-fig.savefig('figs/size_perc.eps',format='eps')
+fig.savefig(os.path.join(fig_dir,'01d_size_perc.png'),format='png')
 
 # Size counts of images for counts greater than 0.1% of total counts
 fig = plt.figure()
@@ -116,8 +167,8 @@ plt.ylabel('count')
 plt.xlim([-1,1e4])
 plt.grid(True)
 plt.show()
-fig.savefig('figs/size_count_top01p.png',format='png')
-fig.savefig('figs/size_count_top01p.eps',format='eps')
+fig.savefig(os.path.join(fig_dir,'01c_size_count_top01p.png'),format='png')
+
 
 # Size percentages of images for percentages greater than 0.1
 fig = plt.figure()
@@ -130,8 +181,7 @@ plt.grid(True)
 plt.xlabel('file size [bytes]')
 plt.ylabel('percentage of total number of images')
 plt.show()
-fig.savefig('figs/size_perc_top01p.png',format='png')
-fig.savefig('figs/size_perc_top01p.eps',format='eps')
+fig.savefig(os.path.join(fig_dir,'01d_size_perc_top01p.png'),format='png')
 
 # Top 20 size counts of images
 
@@ -156,8 +206,7 @@ ax.yaxis.set_major_formatter(formatter)
 fig.tight_layout()
 plt.grid(True)
 #plt.show()
-fig.savefig('figs/size_count_top20.png',format='png')
-fig.savefig('figs/size_count_top20.eps',format='eps')
+fig.savefig(os.path.join(fig_dir,'01c_size_count_top20.png'),format='png')
 
 fig, ax = plt.subplots()
 plt.bar(x,size_count[0:20],align='center', label ='all')
@@ -171,8 +220,8 @@ plt.ylim([0,0.8*1e5])
 fig.tight_layout()
 plt.grid(True)
 plt.show()
-fig.savefig('figs/size_count_top20_zoom.png',format='png')
-fig.savefig('figs/size_count_top20_zoom.eps',format='eps')
+fig.savefig('figs/01c_size_count_top20_zoom.png',format='png')
+fig.savefig('figs/01c_size_count_top20_zoom.eps',format='eps')
 
 
 fig = plt.figure()
@@ -186,8 +235,8 @@ plt.yscale('log')
 fig.tight_layout()
 plt.grid(True) 
 plt.show()
-fig.savefig('figs/size_count_top20_ylog.png',format='png')
-fig.savefig('figs/size_count_top20_ylog.eps',format='eps')
+fig.savefig('figs/01c_size_count_top20_ylog.png',format='png')
+fig.savefig('figs/01c_size_count_top20_ylog.eps',format='eps')
 
 # Top 20 size percentages of images
 fig_dir = '/home/nsarafij/project/OpenWPM/analysis/figs/'
@@ -201,8 +250,7 @@ plt.ylabel('percentage of total number of images')
 plt.legend()
 fig.tight_layout()
 plt.show()
-fig.savefig(fig_dir+'size_perc_top20.png',format='png')
-fig.savefig(fig_dir+'size_perc_top20.eps',format='eps')
+fig.savefig(os.path.join(fig_dir,'01c_size_perc_top20.png'),format='png')
 
 fig = plt.figure()
 plt.bar(x,size_count_[0:20],align='center',label ='all')
@@ -213,8 +261,7 @@ plt.ylabel('percentage of total number of images')
 plt.legend()
 plt.yscale('log')
 plt.show()
-fig.savefig('figs/size_perc_top20_ylog.png',format='png')
-fig.savefig('figs/size_perc_top20_ylog.eps',format='eps')
+fig.savefig('figs/01c_size_perc_top20_ylog.png',format='png')
 
 
 

@@ -15,6 +15,23 @@ def domains_line(key,line):
 
 def domains_file(key):
     domains = sets.Set()
+    with open(os.path.join(output_dir,'keys')) as keys_fhand:
+        for line in keys_fhand:
+            for domain in domains_line(key,line):
+                domains.add(domain)
+        keys_fhand.close()
+        return domains
+
+def domains_file_2(key):
+    domains = dict()
+    with open(os.path.join(output_dir,'keys')) as keys_fhand:
+        for line in keys_fhand:
+            for domain in domains_line(key,line):
+                domains[domain]=domains.get(domain,0)+1
+        return domains
+
+def domains_file(key):
+    domains = sets.Set()
     keys_fhand = open(os.path.join(output_dir,'keys'))
     for line in keys_fhand:
         for domain in domains_line(key,line):
@@ -38,16 +55,18 @@ with open(os.path.join(output_dir,'keysPersist')) as fhand:
                 
 
 keysDict_sorted = sorted(keys_dict.items(), key=operator.itemgetter(1), reverse = True)
-keys,values = zip(*keysDict_sorted)
+#keys,values = zip(*keysDict_sorted)
 
 
-open(os.path.join(output_dir,'domains'),'a') as domains_fhand:
-	for key in keys:
-	    domains_fhand.write(key + ' *')
-	    domains = domains_file(key)
-	    for domain in domains:
-		domains_fhand.write(' ' + domain)
-	    domains_fhand.write('\n') 
+with open(os.path.join(output_dir,'domains_2'),'a') as domains_fhand:
+    for key,value in keysDict_sorted:
+        print key
+        domains_fhand.write(key + ' *')
+        domains = domains_file_2(key)
+        domains_sorted = sorted(domains.items(), key=operator.itemgetter(1), reverse = True)    
+        for domain,count in domains_sorted:
+            domains_fhand.write(' ' + domain + ' ' + str(count))
+        domains_fhand.write('\n') 
 
 
     

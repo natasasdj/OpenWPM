@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 input_dir = '/home/nsarafij/project/OpenWPM/analysis_redirect/'
 input_file = sys.argv[1]
 keys_file = open(sys.argv[1])
-output_file = 
+
 #keys_file = open(file)
 
 # Read the whole text

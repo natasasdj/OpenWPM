@@ -31,11 +31,12 @@ cur1 = conn1.cursor()
 #cur1.execute('DROP TABLE IF EXISTS Images')
 
 cur1.execute('CREATE TABLE IF NOT EXISTS Images (site_id INTEGER NOT NULL, link_id INTEGER NOT NULL, resp_id INTEGER NOT NULL, \
-                                  resp_domain INTEGER NOT NULL, size INTEGER NOT NULL, cont_length INTEGER NOT NULL, \
+                                  resp_domain INTEGER NOT NULL, resp_domain2 INTEGER NOT NULL,size INTEGER NOT NULL, cont_length INTEGER NOT NULL, \
                                   type INTEGER,  cont_type INTEGER, pixels INTEGER,  \
                                   PRIMARY KEY (site_id, link_id, resp_id), \
                                   FOREIGN KEY (site_id) REFERENCES Domains(id),\
                                   FOREIGN KEY (resp_domain) REFERENCES Domains(id),\
+                                  FOREIGN KEY (resp_domain2) REFERENCES DomainsTwoPart(id),\
                                   FOREIGN KEY (type) REFERENCES Types(id) )')
 
 
@@ -49,6 +50,14 @@ max_no_links = 300
 db_file=data_dir+'crawl-data.sqlite'
 print db_file
 conn = sqlite3.connect(db_file)
+
+def findAll(s, ch):
+    return [i for i, ltr in enumerate(s) if ltr == ch]
+    
+def twoPartDomain(domain):
+    points=findAll(domain,'.')
+    if len(points)<2: return domain
+    return domain[points[-2]+1:]
 
 #filename = res_dir +'no_links.txt'
 #f1 = open(filename,'a')
@@ -109,12 +118,19 @@ for i in range(no_db*100+1,no_db*100+no_sites+1):
             except:
                cur1.execute('INSERT INTO Types (id,type) VALUES (?,?)',(None,cont_type))
                cont_type_id = cur1.lastrowid
-            cur1.execute('SELECT id FROM Domains WHERE domain = ?',(domain,))  
+            cur1.execute('SELECT id FROM Domains WHERE domain = ?',(domain,)) 
             try:
                domain_id = cur1.fetchone()[0]
             except:
                cur1.execute('INSERT INTO Domains (id,domain) VALUES (?,?)',(None,domain))
                domain_id = cur1.lastrowid
+            domainTwoPart = twoPartDomain(domain)
+            cur1.execute('SELECT id FROM DomainsTwoPart WHERE domainTwoPart = ?',(domainTwoPart,)) 
+            try:
+               domainTwoPart_id = cur1.fetchone()[0]
+            except:
+               cur1.execute('INSERT INTO DomainsTwoPart (domainTwoPart) VALUES (?)',(domainTwoPart,))
+               domainTwoPart_id = cur1.lastrowid   
             size = os.path.getsize(filename)
             #print i,j, cont_length, size, cont_type, img_type  
             #print url, domain
@@ -136,7 +152,7 @@ for i in range(no_db*100+1,no_db*100+no_sites+1):
                     
             #print (row['site_id'], row['link_id'], row['response_id'], domain_id, size, cont_length, type_id, cont_type_id, no_pixels)
             #cur1.execute('INSERT IF NOT EXISTS INTO Images (site_id, link_id, resp_id) VALUES (?, ?, ?)', (row['site_id'], row['link_id'], row['response_id'])) 
-            cur1.execute('INSERT INTO Images (site_id, link_id, resp_id, resp_domain, size, cont_length, type, cont_type, pixels) \
+            cur1.execute('INSERT INTO Images (site_id, link_id, resp_id, resp_domain, resp_domain2, size, cont_length, type, cont_type, pixels) \
                          VALUES (?, ?, ?, ?, ?, ?, ?, ?,?)', (row['site_id'], row['link_id'], row['response_id'], domain_id, size, cont_length, type_id, cont_type_id, no_pixels)) 
     conn1.commit()
 conn1.close()

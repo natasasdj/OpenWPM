@@ -20,10 +20,10 @@ for line in urls_file:
     else:
         queries_file.write("\n")
         no_redirects_file.write("\n")
+    no_redirects_file.write(str(no_urls))
     for i in range(no_urls): 
         print i 
-        if i != 0: queries_file.write(" ")     
-        no_redirects_file.write(str(no_urls))
+        if i != 0: queries_file.write(" ")
         print line_split[i*4+0] + " " + line_split[i*4+1] + " " + line_split[i*4+2]
         queries_file.write(line_split[i*4+0] + " " + line_split[i*4+1] + " " + line_split[i*4+2])
         url = line_split[i*4+3]

@@ -19,6 +19,7 @@ def thousands(x, pos):
 
 formatter = FuncFormatter(thousands)
 
+
 def ecdf_for_plot(sample):
     #x = np.linspace(min(sample), max(sample))
     print "sample: ",type(sample)
@@ -44,16 +45,17 @@ df.shape[0]#31861758
 zeroes.shape[0]/float(df.shape[0])#0.0845
 
 
-fig_dir = '/home/nsarafij/project/OpenWPM/analysis/figs_10k/'
+fig_dir = '/home/nsarafij/project/OpenWPM/analysis/figs_10k_domains/'
         
 ### content-length
 (x,y) = ecdf_for_plot(zeroes['cont_length'])
 
-plt.figure()
+fig, ax = plt.subplots()
 plt.step(x,y)
 plt.ylabel('cdf')
 plt.xlabel('content-length')
 plt.grid(True)
+ax.xaxis.set_major_formatter(formatter)
 plt.savefig(os.path.join(fig_dir,'zeroes_cont_length_cdf.png'))
 plt.show()
 
@@ -66,7 +68,7 @@ plt.xscale('symlog')
 plt.savefig(os.path.join(fig_dir,'zeroes_cont_length_cdf_log.png'))
 plt.show()
 
-(zeroes['cont_length']==zeroes['size']).sum()/float(zeroes.shape[0])
+(zeroes['cont_length']==zeroes['size']).sum()/float(zeroes.shape[0]) #0.15947532980271786
 
 
 ### domains all
@@ -76,7 +78,8 @@ plt.show()
 # third-party domains (with subdomain) 
 (zeroes['site_id']!=zeroes['resp_domain']).sum()/float(zeroes.shape[0])*100
 #76.6%
-zeroes.columns = ['respDom_id' if x=='resp_dom' else x for x in zeroes.columns]
+
+zeroes.columns = ['respDom_id' if x=='resp_domain' else x for x in zeroes.columns]
 
 query = 'SELECT * FROM Domain_DomainTwoPart'
 df_domdom2 = pd.read_sql_query(query,conn)
@@ -96,19 +99,17 @@ zeroes=zeroes.merge(df_dom2, left_on = 'respDom_id2', right_on = 'id', how = 'le
 zeroes.drop('id',inplace=True,axis=1)
 zeroes.columns = ['respDom_domain2' if x=='domainTwoPart' else x for x in zeroes.columns]
 
-query = 'SELECT * FROM DomainCompany'
-df_domcom = pd.read_sql_query(query,conn)
-zeroes=zeroes.merge(df_domcom, left_on = 'respDom_id', right_on = 'domain_id', how = 'left')
-zeroes.drop('domain_id',inplace=True,axis=1)
-zeroes.columns = ['respDomCompany_id' if x=='company_id' else x for x in zeroes.columns]
+query = 'SELECT * FROM Domain2Company'
+df_do2mcom = pd.read_sql_query(query,conn)
+zeroes=zeroes.merge(df_dom2com, left_on = 'respDom_id2', right_on = 'domainTwoPart_id', how = 'left')
+zeroes.drop('domainTwoPart_id',inplace=True,axis=1)
 
 query = 'SELECT * FROM Companies'
 df_com = pd.read_sql_query(query,conn)
-zeroes=zeroes.merge(df_com, left_on = 'respDomCompany_id', right_on = 'id', how = 'left')
+zeroes=zeroes.merge(df_com, left_on = 'company_id', right_on = 'id', how = 'left')
 zeroes.drop('id',inplace=True,axis=1)
-zeroes.rename('company':'respDom_company', inplace= True)
-zeroes.columns = ['respDom_company' if x=='company' else x for x in zeroes.columns]
-zeroes.columns = ['respDom_country' if x=='country' else x for x in zeroes.columns]
+
+
 
 ### domains all
 # first-party domains 2  (without subdomain)
@@ -131,7 +132,7 @@ dom_perc = domains/float(total)
 dom_perc_cum = dom_perc.cumsum()
 
 
-domcom = zeroes_.groupby(['domainTwoPart','company']).size().reset_index(name='count').sort('count',ascending=False)
+
 
 # cdf of number of zero images per third-party domains
 
@@ -151,9 +152,9 @@ plt.plot(range(1,dom_perc_cum.size+1),dom_perc_cum*100,marker='.')
 plt.xscale('log')
 plt.title('Cumulative Percentage Counts')
 plt.xlabel('domain rank')
-plt.ylabel('percentage of the zero images')
+plt.ylabel('percentage of zero images')
 plt.grid(True)
-fig.savefig(fig_dir + 'zeroes_third-domains_perc_cum.png',format='png')
+fig.savefig(fig_dir + 'zeroes_third-domain2_perc_cum.png',format='png')
 plt.show()
 
 # cumulative percentages per number of zero images coming from a domain
@@ -167,9 +168,9 @@ plt.plot(domains_perc_cum.index,domains_perc_cum*100,marker='.')
 plt.xscale('log')
 plt.title('Cumulative Percentages')
 plt.xlabel('number of zero images coming from a domain')
-plt.ylabel('percentage of the zero images')
+plt.ylabel('percentage of zero images')
 plt.grid(True)
-fig.savefig(fig_dir + 'zeroes_third-domainsNo_perc_cum.png',format='png')
+fig.savefig(fig_dir + 'zeroes_third-domain2No_perc_cum.png',format='png')
 plt.show()
 
 # third-party domain ranks and corresponding percentages of zero images
@@ -178,15 +179,17 @@ fig = plt.figure()
 plt.plot(range(1,domains.size+1),dom_perc*100,marker='.')
 plt.xscale('log')
 plt.xlabel('domain rank')
-plt.ylabel('percentage of the zero images')
+plt.ylabel('percentage of zero images')
 plt.xlim([1,domains.size+1])
 plt.grid(True)
-fig.savefig(fig_dir + 'zeroes_third-domains_perc.png',format='png')
+fig.savefig(fig_dir + 'zeroes_third-domain2_perc.png',format='png')
 plt.show()
 
 
-# top 20 third-party domains - percentages
-n=20
+domcom = zeroes_.groupby(['domainTwoPart','company']).size().reset_index(name='count').sort('count',ascending=False)
+
+# top 30 third-party domains - percentages
+n=30
 x=np.arange(0.5,n)
 fig = plt.figure()
 plt.bar(x,dom_perc[0:n]*100,align='center')
@@ -196,42 +199,91 @@ labels = list(domains.index[0:n])
 plt.xticks(x, labels, rotation=80)
 fig.tight_layout()
 plt.grid(True)
-fig.savefig(fig_dir + 'zeroes_third-domains_perc_top20.png',format='png')
+fig.savefig(fig_dir + 'zeroes_third-domain2_perc_top30.png',format='png')
 plt.show()
 
+### table domains - companies
+domcom = zeroes_[['respDom_domain2','company']].groupby(['respDom_domain2','company']).size().reset_index(name='img_perc').sort_values('img_perc',ascending=False)
+domcom['img_perc']=domcom['img_perc']/float(zeroes_.shape[0])*100
+table_dir = '/home/nsarafij/project/OpenWPM/analysis/tables_10k'
+fhand = open(os.path.join(table_dir,'third-domain2company_zero_perc_top30.txt'),'w+')
 
-companies = zeroes_['respDom_company'].value_counts()
+for i in range(0,n):
+    dom = domcom.iloc[i,0]
+    com =  domcom.iloc[i,1]
+    perc = domcom.iloc[i,2]
+    s = str(i+1) + ' & ' + dom  +  ' & ' + com + ' & ' + '%.2f' % perc + '\\\\ \\hline'
+    #print s
+    s = s.encode('UTF-8')
+    print s
+    fhand.write(s + '\n')  
+           
+fhand.close()
+
+### companies
+
+companies = zeroes_['company'].value_counts()
 total = zeroes_.shape[0]
 companies_cum = companies.cumsum()
 com_perc = companies/float(total)
 com_perc_cum = com_perc.cumsum()
 
+companies.size #854
 
 # third-party company ranks and corresponding percentages of zero images
 
 fig = plt.figure()
 plt.plot(range(1,companies.size+1),com_perc*100,marker='.')
-#plt.xscale('log')
+plt.xscale('log')
 plt.xlabel('company rank')
-plt.ylabel('percentage of the zero images')
+plt.ylabel('percentage of zero images')
 plt.xlim([1,companies.size+1])
 plt.grid(True)
-fig.savefig(fig_dir + 'zeroes_third-domainCompanies_perc.png',format='png')
+fig.savefig(fig_dir + 'third-company_zero_perc.png',format='png')
 plt.show()
 
-# top 20 third-party companies - percentages
-n=20
+#cumulative
+
+fig = plt.figure()
+plt.plot(range(1,com_perc_cum.size+1),com_perc_cum*100,marker='.')
+plt.xscale('log')
+#plt.title('Cumulative Percentages')
+plt.xlabel('domain rank')
+plt.ylabel('percentage of zero images')
+plt.grid(True)
+fig.savefig(fig_dir + 'third-company_zero_perc_cum.png',format='png')
+plt.show()
+
+
+# top 30 third-party companies - percentages
+n=30
 x=np.arange(0.5,n)
 fig = plt.figure()
 plt.bar(x,com_perc[0:n]*100,align='center')
 plt.xlabel('companies')
 plt.ylabel('percentage of zero images')
 labels = list(companies.index[0:n])
-plt.xticks(x, labels, rotation=80)
+plt.xticks(x, labels, rotation=90)
 fig.tight_layout()
 plt.grid(True)
-fig.savefig(fig_dir + 'zeroes_third-domainCompanies_perc_top20.png',format='png')
+fig.savefig(fig_dir + 'third-company_zero_perc_top30.png',format='png')
 plt.show()
+
+### table: top 30 companies
+table_dir = '/home/nsarafij/project/OpenWPM/analysis/tables_10k'
+fhand = open(os.path.join(table_dir,'third-company_zero_perc_top30.txt'),'w+')
+
+for i in range(0,n):
+    com = com_perc.index[i]
+    perc = com_perc[i]*100
+    s = str(i+1) +  ' & ' + com + ' & ' + '%.3f' % perc + '\\\\ \\hline'
+    print s
+    s = s.encode('UTF-8')
+    print s
+    fhand.write(s + '\n')      
+       
+fhand.close()
+
 
 # table in latex
 

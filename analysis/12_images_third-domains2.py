@@ -67,7 +67,7 @@ df=df.merge(df_com,left_on='company_id',right_on='id',how='left')
 df.drop('id',axis=1,inplace=True)
 
 
-conn.close()
+#conn.close()
 
 df1=df.loc[df['site_id2']==df['respDom_id2']]
 df2=df.loc[df['site_id2']!=df['respDom_id2']]
@@ -90,9 +90,9 @@ links #912363
 912363/964315.
 
 # distinct response domains
-df['respDom_id2'].unique(().size #29009
-df1['respDom_id2'].unique(().size #7863
-df2['respDom_id2'].unique(().size #23235
+df['respDom_id2'].unique().size #29009
+df1['respDom_id2'].unique().size #7863
+df2['respDom_id2'].unique().size #23235
 
 
 domains2 = df2[['respDom_id2','respDom_domain2']].groupby(['respDom_id2','respDom_domain2']).size().sort_values(ascending = False).reset_index()
@@ -208,9 +208,9 @@ fhand = open(os.path.join(table_dir,'third-domain2company_perc_top30.txt'),'w+')
 ### table domains - companies
 for i in range(0,n):
     dom = domcom.iloc[i,0]
-    com =  domcom.iloc[i,1]
+    comp =  domcom.iloc[i,1]
     perc = domcom.iloc[i,2]
-    s = str(i+1) + ' & ' + dom  +  ' & ' + com + ' & ' + '%.2f' % perc + '\\\\ \\hline'
+    s = str(i+1) + ' & ' + dom  +  ' & ' + comp + ' & ' + '%.2f' % perc + '\\\\ \\hline'
     print s
     s = s.encode('UTF-8')
     print s
@@ -294,12 +294,16 @@ fig.savefig(fig_dir + 'third-company_perc_top30.png',format='png')
 
 ############################## 1-pixel images
 
+df3all=df.ix[df['pixels']==1]
+df3all.shape[0] #9906784
+df3all.shape[0]/float(df.shape[0]) #0.31093023806156583
 df3=df2.ix[df2['pixels']==1]
-
+df3.shape[0] #9662147
+df3.shape[0]/float(df3all.shape[0]) #0.9753061134672968
 # 1-pixel images: counts per each response domain
 dom_pix1 = df3['respDom_domain2'].value_counts()
 dom_pix1_cum = dom_pix1.cumsum()
-dom_pix1_perc = dom_pix1/float(total)
+dom_pix1_perc = dom_pix1/float(df3.shape[0])
 dom_pix1_perc_ = dom_pix1/float(dom_pix1_cum[dom_pix1_cum.size-1:dom_pix1_cum.size])
 dom_pix1_perc_cum = dom_pix1_perc_.cumsum()
 #dom_pix1_=pd.merge(pd.DataFrame(dom_pix1), df_dom, left_index=True, right_on='id')
@@ -307,9 +311,12 @@ dom_pix1_perc_cum = dom_pix1_perc_.cumsum()
 # 1-pixel images: counts per each company
 com_pix1 = df3['company'].value_counts()
 com_pix1_cum = com_pix1.cumsum()
-com_pix1_perc = com_pix1/float(total)
+com_pix1_perc = com_pix1/float(df3.shape[0])
 com_pix1_perc_ = com_pix1/float(com_pix1_cum[com_pix1_cum.size-1:com_pix1_cum.size])
 com_pix1_perc_cum = com_pix1_perc_.cumsum()
+
+### figures
+fig_dir = '/home/nsarafij/project/OpenWPM/analysis/figs_10k_domains/'
 
 # cdf of no of 
 (x,y) = ecdf_for_plot(dom_pix1)
@@ -324,7 +331,7 @@ plt.savefig(os.path.join(fig_dir,'third-domains2_cdf.png'))
 # counts
 fig, ax = plt.subplots()
 plt.plot(dom_pix1,marker='.')
-plt.xscale('log')
+plt.xscale('symlog')
 ax.yaxis.set_major_formatter(formatter)
 plt.xlabel('domain rank')
 plt.ylabel('count of images')
@@ -395,7 +402,7 @@ plt.show()
 
 ### table domains - companies
 domcom = df3[['respDom_domain2','company']].groupby(['respDom_domain2','company']).size().reset_index(name='img_perc').sort_values('img_perc',ascending=False)
-domcom['img_perc']=domcom['img_perc']/float(df2.shape[0])*100
+domcom['img_perc']=domcom['img_perc']/float(df3.shape[0])*100
 table_dir = '/home/nsarafij/project/OpenWPM/analysis/tables_10k'
 fhand = open(os.path.join(table_dir,'third-domain2company_pix1_perc_top30.txt'),'w+')
 
@@ -500,7 +507,7 @@ for i in range(0,n):
        
 fhand.close()
 
-
+conn.close()
 '''
 fig1 = plt.figure(1)
 plt.hist(df['size'], bins=100, color='lightblue',label ='all')

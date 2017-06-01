@@ -100,7 +100,7 @@ zeroes.drop('id',inplace=True,axis=1)
 zeroes.columns = ['respDom_domain2' if x=='domainTwoPart' else x for x in zeroes.columns]
 
 query = 'SELECT * FROM Domain2Company'
-df_do2mcom = pd.read_sql_query(query,conn)
+df_dom2com = pd.read_sql_query(query,conn)
 zeroes=zeroes.merge(df_dom2com, left_on = 'respDom_id2', right_on = 'domainTwoPart_id', how = 'left')
 zeroes.drop('domainTwoPart_id',inplace=True,axis=1)
 
@@ -186,7 +186,6 @@ fig.savefig(fig_dir + 'zeroes_third-domain2_perc.png',format='png')
 plt.show()
 
 
-domcom = zeroes_.groupby(['domainTwoPart','company']).size().reset_index(name='count').sort('count',ascending=False)
 
 # top 30 third-party domains - percentages
 n=30
@@ -210,9 +209,9 @@ fhand = open(os.path.join(table_dir,'third-domain2company_zero_perc_top30.txt'),
 
 for i in range(0,n):
     dom = domcom.iloc[i,0]
-    com =  domcom.iloc[i,1]
+    comp =  domcom.iloc[i,1]
     perc = domcom.iloc[i,2]
-    s = str(i+1) + ' & ' + dom  +  ' & ' + com + ' & ' + '%.2f' % perc + '\\\\ \\hline'
+    s = str(i+1) + ' & ' + dom  +  ' & ' + comp + ' & ' + '%.2f' % perc + '\\\\ \\hline'
     #print s
     s = s.encode('UTF-8')
     print s
@@ -289,11 +288,12 @@ fhand.close()
 
 # None company
 
-zeroes_.loc[zeroes_['respDom_id2']==4][['respDom_id2','respDom_domain2']]
-
+zeroes_.loc[zeroes_['company_id']==4].shape[0]/float(zeroes_.shape[0])
+# 0.03896522119492128
 ### put this into results as well
-zeroes_['respDomCompany_id'].isnull().sum()/float(zeroes_.shape[0])
-# 2.6%
+zeroes_['company'].isnull().sum()/float(zeroes_.shape[0])
+# 0.00049804140653672828
+
 
 
 

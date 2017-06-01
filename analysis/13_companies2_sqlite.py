@@ -8,7 +8,7 @@ import signal
 import re
 
 def handler(signum, frame):
-    print "Forever is over!"
+    #print "Forever is over!"
     raise Exception("end of time")
         
 signal.signal(signal.SIGALRM, handler)
@@ -17,7 +17,6 @@ def get_company(domain):
     company = None
     country = None      
     try:
-        
         signal.alarm(10)
         w=pywhois.get_whois(domain)
         signal.alarm(0)
@@ -39,14 +38,45 @@ def get_company(domain):
         elif (w['contacts']['registrant'] is not None) and ('name' in w['contacts']['registrant']): 
             company = w['contacts']['registrant']['name'] 
             if 'country' in w['contacts']['registrant']: country = w['contacts']['registrant']['country']
-        elif re.search('Registrant Organization: (.+)?\n',w['raw'][0]):
-            company = re.search('Registrant Organization: (.+)?\n',w['raw'][0]).group(1)
+        elif re.search('Admin Organi[sz]ation: (.+)?\n',w['raw'][0]):
+            company = re.search('Admin Organi[sz]ation: (.+)?\n',w['raw'][0]).group(1)
+            if re.search('Admin Country: (.+)?\n',w['raw'][0]): country = re.search('Admin Country: (.+)?\n',w['raw'][0]).group(1)
+        elif re.search('Tech Organi[sz]ation: (.+)?\n',w['raw'][0]):
+            company = re.search('Tech Organi[sz]ation: (.+)?\n',w['raw'][0]).group(1)
+            if re.search('Tech Country: (.+)?\n',w['raw'][0]): country = re.search('Tech Country: (.+)?\n',w['raw'][0]).group(1)
+        elif re.search('Registrant Organi[sz]ation: (.+)?\n',w['raw'][0]):
+            company = re.search('Registrant Organi[sz]ation: (.+)?\n',w['raw'][0]).group(1)
+            if re.search('Registrant Country: (.+)?\n',w['raw'][0]): country = re.search('Registrant Country: (.+)?\n',w['raw'][0]).group(1)
         elif re.search('Registrant Name: (.+)?\n',w['raw'][0]):
-            company = re.search('Registrant Organization: (.+)?\n',w['raw'][0]).group(1)
+            company = re.search('Registrant Name: (.+)?\n',w['raw'][0]).group(1)
+            if re.search('Registrant Country: (.+)?\n',w['raw'][0]): country = re.search('Registrant Country: (.+)?\n',w['raw'][0]).group(1)
+        elif re.search('REGISTRAR:\n(.+)?\n',w['raw'][0]):
+            company = re.search('REGISTRAR:\n(.+)?\n',w['raw'][0]).group(1)
+        elif re.search('Organi[sz]ation:\s*(.+)?\n',w['raw'][0]):
+            company = re.search('Organi[sz]ation:\s*(.+)?\n',w['raw'][0]).group(1)
+            #print "Natasa"
         if (company is not None) and (country is None):
-            if 'country' in w['contacts']['admin']: country = w['contacts']['admin']['country']
-            elif 'country' in w['contacts']['tech']: country = w['contacts']['tech']['country'] 
-            elif 'country' in w['contacts']['registrant']: country = w['contacts']['registrant']['country']   
+            if w['contacts']['admin'] and 'country' in w['contacts']['admin']: 
+                country = w['contacts']['admin']['country']
+                #print "Natasa 1"
+            elif w['contacts']['tech'] and 'country' in w['contacts']['tech']: 
+                country = w['contacts']['tech']['country']
+                #print "Natasa 2" 
+            elif w['contacts']['registrant'] and 'country' in w['contacts']['registrant']: 
+                country = w['contacts']['registrant']['country'] 
+                #print "Natasa 3"
+            elif re.search('Admin Country: (.+)?\n',w['raw'][0]): 
+                country = re.search('Admin Country: (.+)?\n',w['raw'][0]).group(1)
+                #print "Natasa 4"
+            elif re.search('Tech Country: (.+)?\n',w['raw'][0]): 
+                country = re.search('Tech Country: (.+)?\n',w['raw'][0]).group(1)
+                #print "Natasa 5"
+            elif re.search('Registrant Country: (.+)?\n',w['raw'][0]): 
+                country = re.search('Registrant Country: (.+)?\n',w['raw'][0]).group(1) 
+                #print "Natasa 6"
+            elif re.search('Country: (.+)?\n',w['raw'][0]): 
+                country = re.search('Country: (.+)?\n',w['raw'][0]).group(1) 
+                #print "Natasa 7"
     except Exception as e:
         print "Exception: ", e 
     return (company,country)      
@@ -75,8 +105,6 @@ cur.execute('SELECT count(domainTwoPart_id) FROM Domain2Company')
 last_id = cur.fetchone()[0]
 print last_id
 
-
-
 #max_id = 2000
 firstLine = True
 i=0
@@ -92,8 +120,8 @@ for line in fhand:
     if count == 1: break
     print "***** ***** i: ", i, " domain_id: ", domain_id, " domain: ", domain
     domain_parts = domain.split('.')
-    for i in range(0, len(domain_parts)-1):
-        sliced_domain = '.'.join(domain_parts[i:])
+    for k in range(0, len(domain_parts)-1):
+        sliced_domain = '.'.join(domain_parts[k:])
         company,country = get_company(sliced_domain)
         if company is not None: break 
     if company is None: 
@@ -125,7 +153,7 @@ fhand.close()
 conn = sqlite3.connect(db)
 cur = conn.cursor()
 
-query='SELECT domainTwoPart_id FROM Domain2Company where company_id=4'
+query='SELECT domainTwoPart_id FROM Domain2Company WHERE company_id=4'
 d1=pd.read_sql_query(query,conn)
 query='SELECT * FROM DomainsTwoPart'
 d2=pd.read_sql_query(query,conn)

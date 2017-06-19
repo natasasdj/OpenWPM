@@ -19,7 +19,7 @@ if not os.path.exists(res_dir):
     os.makedirs(res_dir)
 
 
-db = res_dir + 'images_' + start_site + '.sqlite' #sys.argv[1]
+db = os.path.join(res_dir,'images_' + start_site + '.sqlite') #sys.argv[1]
 conn1 = sqlite3.connect(db)
 cur1 = conn1.cursor()
 #cur1.execute('DROP TABLE IF EXISTS Images')
@@ -41,19 +41,92 @@ db= os.path.join(data_dir,'crawl-data.sqlite')
 conn = sqlite3.connect(db)
 
 
-f1 = open(os.path.join(res_dir,'test1'),'a')
-f2 = open(os.path.join(res_dir,'test2'),'a')
 
 ts = timer()
 
-query = 'SELECT * FROM site_visits ORDER BY site_id ASC, link_id ASC'
-df = pd.read_sql_query(query,conn)
+query = 'SELECT * FROM site_visits WHERE (link_id = 0 AND (resp_time_2 IS NOT NULL)) OR ((link_id != 0 AND (resp_time_3 IS NOT NULL)) ORDER BY site_id ASC, link_id ASC'
+df1 = pd.read_sql_query(query,conn)
 print "start 2"
 query = 'SELECT * FROM http_responses'
-df1 = pd.read_sql_query(query,conn)
+df2 = pd.read_sql_query(query,conn)
 print "start 3"
-ts2 = timer()
-f1.write('0 0 ' + str(ts2-ts) + '\n'  )
+df = df1.merge(df2, on = ('site_id','link_id'),how='left')
+
+k = 0 
+for index, row in df.iterrows():
+    print row['site_id'],row['link_id'], row['response_id'] 
+    k += 1
+    if k == 10: break
+    if pd.isnull(row['file_name']): continue
+    if 'html' in row['file_name']:  continue
+    header = row['headers']
+    i1 = header.find('"Content-Length",') 
+    i2 = header.find('"', i1+len('"Content-Length"'))
+    i3 = header.find('"', i2+1) 
+    cont_length = header[i2+1:i3]
+    i1 = header.find('"Content-Type",') 
+    i2 = header.find('"', i1+len('"Content-Type"'))
+    i3 = header.find('"', i2+1) 
+    cont_type = header[i2+1:i3].lower()
+    cont_type = re.sub("[,;].*","",cont_type)
+    url = row['url']
+    domain = urlparse(url).hostname.strip('www.')
+    filename = os.path.join(data_img_dir,'site-' + str(row['site_id']),row['file_name'])
+    img_type = magic_from_file(filename, mime=True).lower()
+    img_type = re.sub("[,;].*","",img_type)
+    no_pixels = None
+    try: 
+        img = Image.open(filename)
+        width, height = img.size
+        no_pixels = width*height
+    except:           
+        try:
+            height = ET. parse(filename).getroot().attrib["height"]
+            height = int(re.sub("[^0-9]", "", height))
+            width = ET.parse(filename).getroot().attrib["width"] 
+            width = int(re.sub("[^0-9]", "", width))
+            no_pixels = height * width
+        except:
+            pass
+
+    if img_type in cont_type: cont_type = img_type
+    if 'jpg' in cont_type: cont_type = 'image/jpeg'
+    if 'bmp' in cont_type: cont_type = 'image/bmp'
+    if 'bitmap' in cont_type: cont_type = 'image/bmp'
+    if 'bmp' in img_type: img_type = 'image/bmp'
+    if 'bitmap' in img_type: img_type = 'image/bmp'           
+    if 'icon' in cont_type: cont_type = 'image/x-icon'
+    if 'icon' in img_type: img_type = 'image/x-icon'           
+    
+    cur1.execute('SELECT id FROM Types WHERE type = ?',(img_type,))
+    try:
+        type_id = cur1.fetchone()[0]
+    except:
+        cur1.execute('INSERT INTO Types (id,type) VALUES (?,?)',(None,img_type))
+        type_id = cur1.lastrowid
+
+    cur1.execute('SELECT id FROM Types WHERE type = ?',(cont_type,))
+    try:
+        cont_type_id = cur1.fetchone()[0]
+    except:
+        cur1.execute('INSERT INTO Types (id,type) VALUES (?,?)',(None,cont_type))
+        cont_type_id = cur1.lastrowid
+    cur2.execute('SELECT id FROM Domains WHERE domain = ?',(domain,)) 
+    try:
+       domain_id = cur2.fetchone()[0]
+    except:
+       domain_id = None
+    size = os.path.getsize(filename)
+
+    cur1.execute('INSERT INTO Images (site_id, link_id, resp_id, resp_domain, size, cont_length, type, cont_type, pixels) \
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?,?)', (row['site_id'], row['link_id'], row['response_id'], domain_id, size, cont_length, type_id, cont_type_id, no_pixels)) 
+        
+conn1.commit()
+conn2.commit()
+
+
+
+'''
 for index, row in df.iterrows():
     print row['site_id'],row['link_id']
     t1 = timer()
@@ -66,7 +139,7 @@ for index, row in df.iterrows():
     df2 = df1.loc[(df1['site_id'] == row['site_id']) & (df1['link_id'] == row['link_id'])]
     #print df2 
     t2 = timer()
-    for index1, row2 in df2.iterrows():
+    for index2, row2 in df2.iterrows():
         #print row2
         t3 = timer()
         if pd.isnull(row2['file_name']): continue
@@ -144,6 +217,8 @@ for index, row in df.iterrows():
     f1.write(str(row['site_id']) + ' '  + str(row['link_id']) + ' '  + str(t2-t1) + '\n'  )           
     conn1.commit()
     conn2.commit()
+    
+'''    
 te = timer()
 print "time:", te - ts
 f1.write('0 0 ' + str(te-ts) + '\n')

@@ -11,15 +11,17 @@ from timeit import default_timer as timer
 
 
 data_dir = sys.argv[1]
+print data_dir
 start_site = data_dir.split("_")[1]
 data_img_dir = os.path.join(data_dir,'httpResp')
-
-res_dir = sys.argv[1]
+print data_img_dir
+res_dir = sys.argv[2]
 if not os.path.exists(res_dir):
     os.makedirs(res_dir)
-
+print res_dir
 
 db = os.path.join(res_dir,'images_' + start_site + '.sqlite') #sys.argv[1]
+print db
 conn1 = sqlite3.connect(db)
 cur1 = conn1.cursor()
 #cur1.execute('DROP TABLE IF EXISTS Images')
@@ -44,7 +46,7 @@ conn = sqlite3.connect(db)
 
 ts = timer()
 
-query = 'SELECT * FROM site_visits WHERE (link_id = 0 AND (resp_time_2 IS NOT NULL)) OR ((link_id != 0 AND (resp_time_3 IS NOT NULL)) ORDER BY site_id ASC, link_id ASC'
+query = 'SELECT * FROM site_visits WHERE (link_id = 0 AND resp_time_2 IS NOT NULL) OR (link_id != 0 AND resp_time_3 IS NOT NULL) ORDER BY site_id ASC, link_id ASC'
 df1 = pd.read_sql_query(query,conn)
 print "start 2"
 query = 'SELECT * FROM http_responses'
@@ -54,9 +56,7 @@ df = df1.merge(df2, on = ('site_id','link_id'),how='left')
 
 k = 0 
 for index, row in df.iterrows():
-    print row['site_id'],row['link_id'], row['response_id'] 
-    k += 1
-    if k == 10: break
+    # print row['site_id'],row['link_id'], row['response_id'] 
     if pd.isnull(row['file_name']): continue
     if 'html' in row['file_name']:  continue
     header = row['headers']
@@ -72,6 +72,7 @@ for index, row in df.iterrows():
     url = row['url']
     domain = urlparse(url).hostname.strip('www.')
     filename = os.path.join(data_img_dir,'site-' + str(row['site_id']),row['file_name'])
+
     img_type = magic_from_file(filename, mime=True).lower()
     img_type = re.sub("[,;].*","",img_type)
     no_pixels = None
@@ -120,9 +121,14 @@ for index, row in df.iterrows():
 
     cur1.execute('INSERT INTO Images (site_id, link_id, resp_id, resp_domain, size, cont_length, type, cont_type, pixels) \
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?,?)', (row['site_id'], row['link_id'], row['response_id'], domain_id, size, cont_length, type_id, cont_type_id, no_pixels)) 
-        
+    k += 1
+    if k % 100:
+        print row['site_id']
+        conn1.commit()
+
 conn1.commit()
-conn2.commit()
+
+
 
 
 
@@ -221,13 +227,10 @@ for index, row in df.iterrows():
 '''    
 te = timer()
 print "time:", te - ts
-f1.write('0 0 ' + str(te-ts) + '\n')
+
 conn1.close()
+conn2.close()
 conn.close()  
-
-f1.close()
-f2.close()  
-
 
 
                     

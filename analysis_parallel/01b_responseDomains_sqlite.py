@@ -1,22 +1,27 @@
 import sys
 import sqlite3
 import os
+import pandas as pd
+from urlparse import urlparse
 
+from timeit import default_timer as timer
 
 data_dir = sys.argv[1]
-db = data_dir+'crawl-data.sqlite'
+db = os.path.join(data_dir,'crawl-data.sqlite')
 print db
-conn = sqlite3.connect(db_file)
+conn = sqlite3.connect(db)
 
 res_dir = sys.argv[2]
-db = res_dir + 'domains.sqlite'
+
+db = os.path.join(res_dir,'domains.sqlite')
 print db
 conn1 = sqlite3.connect(db)
+cur1 = conn1.cursor()
 
 ts = timer()
 
 print "start 1"
-query = 'SELECT * FROM site_visits WHERE ORDER BY site_id ASC, link_id ASC'
+query = 'SELECT * FROM site_visits ORDER BY site_id ASC, link_id ASC'
 df = pd.read_sql_query(query,conn)
 print "start 2"
 query = 'SELECT * FROM http_responses'

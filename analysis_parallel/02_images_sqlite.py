@@ -69,58 +69,62 @@ for index, row in df.iterrows():
     i3 = header.find('"', i2+1) 
     cont_type = header[i2+1:i3].lower()
     cont_type = re.sub("[,;].*","",cont_type)
-    url = row['url']
-    domain = urlparse(url).hostname.strip('www.')
-    filename = os.path.join(data_img_dir,'site-' + str(row['site_id']),row['file_name'])
-
-    img_type = magic_from_file(filename, mime=True).lower()
-    img_type = re.sub("[,;].*","",img_type)
-    no_pixels = None
-    try: 
-        img = Image.open(filename)
-        width, height = img.size
-        no_pixels = width*height
-    except:           
-        try:
-            height = ET. parse(filename).getroot().attrib["height"]
-            height = int(re.sub("[^0-9]", "", height))
-            width = ET.parse(filename).getroot().attrib["width"] 
-            width = int(re.sub("[^0-9]", "", width))
-            no_pixels = height * width
-        except:
-            pass
-
-    if img_type in cont_type: cont_type = img_type
-    if 'jpg' in cont_type: cont_type = 'image/jpeg'
-    if 'bmp' in cont_type: cont_type = 'image/bmp'
-    if 'bitmap' in cont_type: cont_type = 'image/bmp'
-    if 'bmp' in img_type: img_type = 'image/bmp'
-    if 'bitmap' in img_type: img_type = 'image/bmp'           
-    if 'icon' in cont_type: cont_type = 'image/x-icon'
-    if 'icon' in img_type: img_type = 'image/x-icon'           
-    
-    cur1.execute('SELECT id FROM Types WHERE type = ?',(img_type,))
-    try:
-        type_id = cur1.fetchone()[0]
-    except:
-        cur1.execute('INSERT INTO Types (id,type) VALUES (?,?)',(None,img_type))
-        type_id = cur1.lastrowid
-
-    cur1.execute('SELECT id FROM Types WHERE type = ?',(cont_type,))
     try:
         cont_type_id = cur1.fetchone()[0]
     except:
         cur1.execute('INSERT INTO Types (id,type) VALUES (?,?)',(None,cont_type))
         cont_type_id = cur1.lastrowid
+    url = row['url']
+    domain = urlparse(url).hostname.strip('www.')
     cur2.execute('SELECT id FROM Domains WHERE domain = ?',(domain,)) 
     try:
        domain_id = cur2.fetchone()[0]
     except:
        domain_id = None
-    size = os.path.getsize(filename)
+   
+    filename = os.path.join(data_img_dir,'site-' + str(row['site_id']),row['file_name'])
+    no_pixels = None; size = None; type_id = None
+    try:
+        size = os.path.getsize(filename)
+        img_type = magic_from_file(filename, mime=True).lower()
+        img_type = re.sub("[,;].*","",img_type      
+        try: 
+            img = Image.open(filename)
+            width, height = img.size
+            no_pixels = width*height
+        except:           
+            try:
+                height = ET. parse(filename).getroot().attrib["height"]
+                height = int(re.sub("[^0-9]", "", height))
+                width = ET.parse(filename).getroot().attrib["width"] 
+                width = int(re.sub("[^0-9]", "", width))
+                no_pixels = height * width
+            except:
+                pass
 
-    cur1.execute('INSERT INTO Images (site_id, link_id, resp_id, resp_domain, size, cont_length, type, cont_type, pixels) \
+        if img_type in cont_type: cont_type = img_type
+        if 'jpg' in cont_type: cont_type = 'image/jpeg'
+        if 'bmp' in cont_type: cont_type = 'image/bmp'
+        if 'bitmap' in cont_type: cont_type = 'image/bmp'
+        if 'bmp' in img_type: img_type = 'image/bmp'
+        if 'bitmap' in img_type: img_type = 'image/bmp'           
+        if 'icon' in cont_type: cont_type = 'image/x-icon'
+        if 'icon' in img_type: img_type = 'image/x-icon'           
+        
+        cur1.execute('SELECT id FROM Types WHERE type = ?',(img_type,))
+        try:
+            type_id = cur1.fetchone()[0]
+        except:
+            cur1.execute('INSERT INTO Types (id,type) VALUES (?,?)',(None,img_type))
+            type_id = cur1.lastrowid
+
+        cur1.execute('SELECT id FROM Types WHERE type = ?',(cont_type,))
+   
+     except:
+        pass
+    cur1.execute('INSERT INTO Images (site_id, link_id, resp_id, resp_domain, size, cont_length, type, cont_type, pixels) \        
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?,?)', (row['site_id'], row['link_id'], row['response_id'], domain_id, size, cont_length, type_id, cont_type_id, no_pixels)) 
+                 
     k += 1
     if k % 100:
         print row['site_id']
@@ -234,6 +238,7 @@ conn.close()
 
 
                     
+                   
          
                 
         

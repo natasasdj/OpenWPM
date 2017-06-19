@@ -69,6 +69,7 @@ for index, row in df.iterrows():
     i3 = header.find('"', i2+1) 
     cont_type = header[i2+1:i3].lower()
     cont_type = re.sub("[,;].*","",cont_type)
+    cur1.execute('SELECT id FROM Types WHERE type = ?',(cont_type,))
     try:
         cont_type_id = cur1.fetchone()[0]
     except:
@@ -118,7 +119,7 @@ for index, row in df.iterrows():
             cur1.execute('INSERT INTO Types (id,type) VALUES (?,?)',(None,img_type))
             type_id = cur1.lastrowid
 
-        cur1.execute('SELECT id FROM Types WHERE type = ?',(cont_type,))
+        
    
     except:
         pass

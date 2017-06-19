@@ -3,14 +3,17 @@ import sqlite3
 import os
 
 data_dir = sys.argv[1]
+print data_dir
 filename = os.path.join(data_dir,'top-1m.csv')
 fhand = open(filename)
 
 res_dir = sys.argv[2]
+print res_dir
 if not os.path.exists(res_dir):
     os.makedirs(res_dir)
-db = res_dir + 'domains.sqlite'
-
+    
+db = os.path.join(res_dir,'domains.sqlite')
+print db
 conn = sqlite3.connect(db)
 cur = conn.cursor()
 cur.execute('DROP TABLE IF EXISTS Domains')

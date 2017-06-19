@@ -1,6 +1,5 @@
 #!/bin/bash
 
-res_dir = /home/
 for i in {1..1}
 do
     echo $i

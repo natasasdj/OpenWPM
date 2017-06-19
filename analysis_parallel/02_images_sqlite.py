@@ -27,7 +27,7 @@ cur1 = conn1.cursor()
 #cur1.execute('DROP TABLE IF EXISTS Images')
 
 cur1.execute('CREATE TABLE IF NOT EXISTS Images (site_id INTEGER NOT NULL, link_id INTEGER NOT NULL, resp_id INTEGER NOT NULL, \
-                                  resp_domain INTEGER NOT NULL, size INTEGER NOT NULL, cont_length INTEGER NOT NULL, \
+                                  resp_domain INTEGER NOT NULL, size INTEGER, cont_length INTEGER, \
                                   type INTEGER,  cont_type INTEGER, pixels INTEGER,  \
                                   PRIMARY KEY (site_id, link_id, resp_id), \
                                   FOREIGN KEY (type) REFERENCES Types(id))')

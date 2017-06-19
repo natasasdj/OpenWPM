@@ -87,7 +87,7 @@ for index, row in df.iterrows():
     try:
         size = os.path.getsize(filename)
         img_type = magic_from_file(filename, mime=True).lower()
-        img_type = re.sub("[,;].*","",img_type      
+        img_type = re.sub("[,;].*","",img_type)      
         try: 
             img = Image.open(filename)
             width, height = img.size
@@ -120,10 +120,10 @@ for index, row in df.iterrows():
 
         cur1.execute('SELECT id FROM Types WHERE type = ?',(cont_type,))
    
-     except:
+    except:
         pass
-    cur1.execute('INSERT INTO Images (site_id, link_id, resp_id, resp_domain, size, cont_length, type, cont_type, pixels) \        
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?,?)', (row['site_id'], row['link_id'], row['response_id'], domain_id, size, cont_length, type_id, cont_type_id, no_pixels)) 
+
+    cur1.execute('INSERT INTO Images (site_id, link_id, resp_id, resp_domain, size, cont_length, type, cont_type, pixels) VALUES (?, ?, ?, ?, ?, ?, ?, ?,?)', (row['site_id'], row['link_id'], row['response_id'], domain_id, size, cont_length, type_id, cont_type_id, no_pixels)) 
                  
     k += 1
     if k % 100:

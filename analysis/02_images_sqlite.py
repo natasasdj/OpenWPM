@@ -20,7 +20,7 @@ if not os.path.exists(res_dir):
     os.makedirs(res_dir)
 print res_dir
 
-db = os.path.join(res_dir,'images_' + start_site + '.sqlite') #sys.argv[1]
+db = os.path.join(res_dir,'images.sqlite') #sys.argv[1]
 print db
 conn1 = sqlite3.connect(db)
 cur1 = conn1.cursor()

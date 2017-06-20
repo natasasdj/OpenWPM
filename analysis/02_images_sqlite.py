@@ -14,14 +14,14 @@ data_dir = sys.argv[1]
 print data_dir
 start_site = data_dir.split("_")[1]
 data_img_dir = os.path.join(data_dir,'httpResp')
-print data_img_dir
+#print data_img_dir
 res_dir = sys.argv[2]
 if not os.path.exists(res_dir):
     os.makedirs(res_dir)
-print res_dir
+#print res_dir
 
 db = os.path.join(res_dir,'images.sqlite') #sys.argv[1]
-print db
+#print db
 conn1 = sqlite3.connect(db)
 cur1 = conn1.cursor()
 #cur1.execute('DROP TABLE IF EXISTS Images')
@@ -36,23 +36,18 @@ cur1.execute('CREATE TABLE IF NOT EXISTS Images (site_id INTEGER NOT NULL, link_
 
 cur1.execute('CREATE TABLE IF NOT EXISTS Types (id INTEGER PRIMARY KEY NOT NULL, type TEXT UNIQUE)')
 
-db = res_dir + 'domains.sqlite'
-conn2 = sqlite3.connect(db)
-cur2 = conn2.cursor()
 
 db= os.path.join(data_dir,'crawl-data.sqlite')
 conn = sqlite3.connect(db)
-
-
 
 ts = timer()
 
 query = 'SELECT * FROM site_visits WHERE (link_id = 0 AND resp_time_2 IS NOT NULL) OR (link_id != 0 AND resp_time_3 IS NOT NULL) ORDER BY site_id ASC, link_id ASC'
 df1 = pd.read_sql_query(query,conn)
-print "start 2"
+#print "start 2"
 query = 'SELECT * FROM http_responses'
 df2 = pd.read_sql_query(query,conn)
-print "start 3"
+#print "start 3"
 df = df1.merge(df2, on = ('site_id','link_id'),how='left')
 
 k = 0 
@@ -134,8 +129,8 @@ for index, row in df.iterrows():
     cur1.execute('INSERT INTO Images (site_id, link_id, resp_id, resp_domain, size, cont_length, type, cont_type, pixels) VALUES (?, ?, ?, ?, ?, ?, ?, ?,?)', (row['site_id'], row['link_id'], row['response_id'], domain_id, size, cont_length, type_id, cont_type_id, no_pixels)) 
                  
     k += 1
-    if k % 100:
-        print row['site_id']
+    if k % 1000:
+        #print row['site_id']
         conn1.commit()
 
 conn1.commit()
@@ -241,7 +236,6 @@ te = timer()
 print "time:", te - ts
 
 conn1.close()
-conn2.close()
 conn.close()  
 
 

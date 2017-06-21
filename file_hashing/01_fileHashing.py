@@ -58,7 +58,7 @@ def bzip2_decompress(fpath):
     fh.close()
 
 def checkFile(siteID, linkID, respID, filename,filedir):
-    #print siteID, linkID, respID, filename, filedir
+    print siteID, linkID, respID, filename, filedir
     filepath = os.path.join(filedir,filename)
     zipped = False
     if os.path.islink(filepath): return
@@ -152,11 +152,16 @@ print "deleting time: ", t2 - t1
 t2=timer()
 k=0
 for index, row in df.iterrows():
+    if not row['site_id'].matches("^-?\\d+$"): continue
+    if not row['link_id'].matches("^-?\\d+$"): continue
+    if not row['response_id'].matches("^-?\\d+$"): continue    
+    if not 'file-' in row['file_name']: continue    
     file_dir = os.path.join(data_dir, 'httpResp','site-'+ str(row['site_id'])) 
     if not os.path.exists(file_dir): continue
+    if 
     checkFile(row['site_id'],row['link_id'],row['response_id'],row['file_name'],file_dir)
     k =+ 1
-    if k % 1000 == 0:
+    if k % 10 == 0:
         print row['site_id'] 
         conn1.commit()  
 

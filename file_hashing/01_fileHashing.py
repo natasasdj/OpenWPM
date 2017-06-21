@@ -120,10 +120,10 @@ site = int(start_site)
 print site
 
 t0 = timer()
-query = 'SELECT * FROM site_visits WHERE (site_id = {} OR site_id = {}) AND ((link_id = 0 AND resp_time_3 IS NOT NULL) OR (link_id != 0 AND resp_time_2 IS NOT NULL)) ORDER BY site_id ASC, link_id ASC'.format(site,site+1)
+query = 'SELECT * FROM site_visits WHERE ((link_id = 0 AND resp_time_3 IS NOT NULL) OR (link_id != 0 AND resp_time_2 IS NOT NULL)) ORDER BY site_id ASC, link_id ASC'
 df1 = pd.read_sql_query(query,conn)
 
-query = 'SELECT * FROM site_visits WHERE (site_id = {} OR site_id = {}) AND ((link_id = 0 AND resp_time_3 IS NULL) OR (link_id != 0 AND resp_time_2 IS NULL)) ORDER BY site_id ASC, link_id ASC'.format(site,site+1)
+query = 'SELECT * FROM site_visits WHERE ((link_id = 0 AND resp_time_3 IS NULL) OR (link_id != 0 AND resp_time_2 IS NULL)) ORDER BY site_id ASC, link_id ASC'
 df1b = pd.read_sql_query(query,conn)
 
 query = 'SELECT * FROM http_responses WHERE(file_name IS NOT NULL)'
@@ -153,7 +153,9 @@ for index, row in df.iterrows():
     file_dir = os.path.join(data_dir, 'httpResp','site-'+ str(row['site_id'])) 
     checkFile(row['site_id'],row['link_id'],row['response_id'],row['file_name'],file_dir)
     k =+ 1
-    if k % 1000 == 0: conn1.commit()  
+    if k % 1000 == 0:
+        print row['site_id'] 
+        conn1.commit()  
 
 conn1.commit() 
 

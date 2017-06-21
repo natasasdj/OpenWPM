@@ -83,7 +83,7 @@ def checkFile(siteID, linkID, respID, filename,filedir):
     if fname is None:
         # put hash into hashHtml or hashImage level db
         hashDB.put(filehash.encode('utf8'),filename.encode('utf8'))
-        query = 'INSERT INTO {} (site_id, link_id, resp_id, count) VALUES({},{},{},{},{})'.format(fileDB,siteID,linkID,respID,1)
+        query = 'INSERT INTO {} (site_id, link_id, resp_id, count) VALUES({},{},{},{})'.format(fileDB,siteID,linkID,respID,1)
         cur1.execute(query)
         if ("html" in filename): 
             if not zipped: bzip2(filepath)
@@ -102,7 +102,7 @@ def checkFile(siteID, linkID, respID, filename,filedir):
         cur1.execute('SELECT count FROM {} WHERE site_id = {} and link_id = {} and resp_id = {}'.format(fileDB,f[1],f[2],f[3]))
         data=cur1.fetchone()
         if data is None:
-            query = 'INSERT INTO {} (site_id, link_id, resp_id, count) VALUES({},{},{},{},{})'.format(fileDB,siteID,linkID,respID,1)
+            query = 'INSERT INTO {} (site_id, link_id, resp_id, count) VALUES({},{},{},{})'.format(fileDB,siteID,linkID,respID,1)
         else:
             query = 'UPDATE {} SET count = {} WHERE site_id = {} and link_id = {} and resp_id = {}'.format(fileDB,data[0] + 1,f[1],f[2],f[3])
         cur1.execute(query)
@@ -139,6 +139,7 @@ print "time for getting data:", t1 - t0
 t1=timer()
 for index, row in df3.iterrows():
     file_dir = os.path.join(data_dir, 'httpResp','site-'+ str(row['site_id']))
+    if not os.path.exists(file_dir): continue
     if row['link_id'] == 0:
         purge(file_dir,"file-"+str(row['site_id'])+"-"+str(row['link_id'])+"-\d+") 
         os.rmdir(file_dir) 
@@ -152,6 +153,7 @@ t2=timer()
 k=0
 for index, row in df.iterrows():
     file_dir = os.path.join(data_dir, 'httpResp','site-'+ str(row['site_id'])) 
+    if not os.path.exists(file_dir): continue
     checkFile(row['site_id'],row['link_id'],row['response_id'],row['file_name'],file_dir)
     k =+ 1
     if k % 1000 == 0:

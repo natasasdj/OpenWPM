@@ -28,7 +28,7 @@ conn1 = sqlite3.connect(db)
 cur1 = conn1.cursor()
 cur1.execute('CREATE TABLE IF NOT EXISTS Images \
 		(site_id INTEGER NOT NULL, link_id INTEGER NOT NULL, resp_id INTEGER NOT NULL, \
-		 count INTEGER, file TEXT, PRIMARY KEY (site_id, link_id, resp_id))')
+		 count INTEGER, PRIMARY KEY (site_id, link_id, resp_id))')
 cur1.execute('CREATE TABLE IF NOT EXISTS Htmls \
 		(site_id INTEGER NOT NULL, link_id INTEGER NOT NULL, resp_id INTEGER NOT NULL, \
 		 count INTEGER, file TEXT, PRIMARY KEY (site_id, link_id, resp_id))')
@@ -83,12 +83,13 @@ def checkFile(siteID, linkID, respID, filename,filedir):
     if fname is None:
         # put hash into hashHtml or hashImage level db
         hashDB.put(filehash.encode('utf8'),filename.encode('utf8'))
-        query = 'INSERT INTO {} (site_id, link_id, resp_id, count, file) VALUES({},{},{},{},{})'.format(fileDB,siteID,linkID,respID,1, '"'+filename+'"')
+        query = 'INSERT INTO {} (site_id, link_id, resp_id, count) VALUES({},{},{},{},{})'.format(fileDB,siteID,linkID,respID,1)
         cur1.execute(query)
         if ("html" in filename): 
             if not zipped: bzip2(filepath)
             os.remove(filepath)
-    elif fname == filename:c
+    elif fname == filename:
+        return
     else:       
         # create symlink        
         f = fname.rstrip(".html").split("-")
@@ -101,7 +102,7 @@ def checkFile(siteID, linkID, respID, filename,filedir):
         cur1.execute('SELECT count FROM {} WHERE site_id = {} and link_id = {} and resp_id = {}'.format(fileDB,f[1],f[2],f[3]))
         data=cur1.fetchone()
         if data is None:
-            query = 'INSERT INTO {} (site_id, link_id, resp_id, count, file) VALUES({},{},{},{},{})'.format(fileDB,siteID,linkID,respID,1, '"'+filename+'"')
+            query = 'INSERT INTO {} (site_id, link_id, resp_id, count) VALUES({},{},{},{},{})'.format(fileDB,siteID,linkID,respID,1)
         else:
             query = 'UPDATE {} SET count = {} WHERE site_id = {} and link_id = {} and resp_id = {}'.format(fileDB,data[0] + 1,f[1],f[2],f[3])
         cur1.execute(query)

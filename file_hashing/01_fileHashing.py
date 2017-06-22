@@ -117,21 +117,21 @@ def purge(directory, pattern):
 
 ts = timer()
 
-site = int(start_site)
-print site
-
 t0 = timer()
-query = 'SELECT * FROM site_visits WHERE ((link_id = 0 AND resp_time_3 IS NOT NULL) OR (link_id != 0 AND resp_time_2 IS NOT NULL)) ORDER BY site_id ASC, link_id ASC'
+query = 'SELECT site_id, link_id FROM site_visits WHERE ((link_id = 0 AND resp_time_3 IS NOT NULL) OR (link_id != 0 AND resp_time_2 IS NOT NULL))'
 df1 = pd.read_sql_query(query,conn)
 
-query = 'SELECT * FROM site_visits WHERE ((link_id = 0 AND resp_time_3 IS NULL) OR (link_id != 0 AND resp_time_2 IS NULL)) ORDER BY site_id ASC, link_id ASC'
+query = 'SELECT site_id,link_id FROM site_visits WHERE ((link_id = 0 AND resp_time_3 IS NULL) OR (link_id != 0 AND resp_time_2 IS NULL))'
 df1b = pd.read_sql_query(query,conn)
 
-query = 'SELECT * FROM http_responses WHERE(file_name IS NOT NULL)'
+#t = timer()
+query = 'SELECT site_id,link_id,response_id,file_name FROM http_responses WHERE (file_name IS NOT NULL)'
 df2 = pd.read_sql_query(query,conn)
+#t_ = timer()
+#print "time ", t_ - t
 
-df = df1.merge(df2, on = ('site_id','link_id'),how='left')
-df3 = df1b.merge(df2, on = ('site_id','link_id'),how='left')
+df = df1.merge(df2, on = ('site_id','link_id'),how='inner').sort_values(['site_id','link_id','response_id'])
+df3 = df1b.merge(df2, on = ('site_id','link_id'),how='inner').sort_values(['site_id','link_id','response_id'])
 
 t1 = timer()
 print "time for getting data:", t1 - t0
@@ -140,27 +140,24 @@ t1=timer()
 for index, row in df3.iterrows():
     file_dir = os.path.join(data_dir, 'httpResp','site-'+ str(row['site_id']))
     if not os.path.exists(file_dir): continue
+    filepath = "file-"+str(row['site_id'])+"-"+str(row['link_id'])+"-\d+"
     if row['link_id'] == 0:
-        purge(file_dir,"file-"+str(row['site_id'])+"-"+str(row['link_id'])+"-\d+") 
+        purge(file_dir,filepath) 
         os.rmdir(file_dir) 
     else:
-        purge(file_dir,"file-"+str(row['site_id'])+"-"+str(row['link_id'])+"-\d+")
+        purge(file_dir,filepath)
         
 t2 = timer()
 print "deleting time: ", t2 - t1
 
 t2=timer()
 k=0
-for index, row in df.iterrows():
-    if not row['site_id'].isdigit(): continue
-    if not row['link_id'].isdigit(): continue
-    if not row['response_id'].isdigit(): continue    
-    if not 'file-' in row['file_name']: continue    
+for index, row in df.iterrows():      
     file_dir = os.path.join(data_dir, 'httpResp','site-'+ str(row['site_id'])) 
     if not os.path.exists(file_dir): continue
     checkFile(row['site_id'],row['link_id'],row['response_id'],row['file_name'],file_dir)
     k =+ 1
-    if k % 10 == 0:
+    if k % 1000 == 0:
         print row['site_id'] 
         conn1.commit()  
 

@@ -58,7 +58,7 @@ def bzip2_decompress(fpath):
     fh.close()
 
 def checkFile(siteID, linkID, respID, filename,filedir):
-    print siteID, linkID, respID, filename, filedir
+    #print siteID, linkID, respID, filename, filedir
     filepath = os.path.join(filedir,filename)
     zipped = False
     if os.path.islink(filepath): return
@@ -67,9 +67,8 @@ def checkFile(siteID, linkID, respID, filename,filedir):
             #print "*** file is already zipped ***"
             zipped = True
         if not zipped: 
-            #print "there is no file", filename
+            print "there is no file", filename
             return   
-    if os.path.islink(filepath): return 
     if zipped:
        bzip2_decompress(filepath+'.bz2')
     if "html" in filename:
@@ -87,13 +86,15 @@ def checkFile(siteID, linkID, respID, filename,filedir):
         cur1.execute(query)
         if ("html" in filename): 
             if not zipped: bzip2(filepath)
+            if not os.path.exists(filepath): print "filepath 1:", filepath
             os.remove(filepath)
     elif fname == filename:
         return
     else:       
         # create symlink        
         f = fname.rstrip(".html").split("-")
-        fpath = os.path.join(data_dir, 'output_' + str((int(f[1])-1)/100) + '01','httpResp/site-' + f[1], fname)        
+        fpath = os.path.join(data_dir, 'output_' + str((int(f[1])-1)/100) + '01','httpResp/site-' + f[1], fname)
+        if not os.path.exists(filepath): print "filepath 2:", filepath        
         os.remove(filepath)        
         if ("html" in filename): 
             os.symlink(fpath+'.bz2',filepath)

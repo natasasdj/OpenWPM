@@ -15,7 +15,7 @@ hash_dir = sys.argv[3]
 if not os.path.exists(hash_dir):
     os.makedirs(hash_dir)
 start_site = data_dir.split("_")[1]
-hash_dir = os.path.join(hash_dir, 'db_'+start_site)
+hash_dir = os.path.join(hash_dir,sys.argv[4])
 if not os.path.exists(hash_dir):
     os.makedirs(hash_dir)
 db_path = os.path.join(hash_dir, 'hashImage.ldb')

@@ -17,7 +17,7 @@ db2 = os.path.join(hash_dir,sys.argv[4])
 split = db2.split("_")
 second = split[-1]
 db = os.path.join(hash_dir,'db_' + first + '_' + second)
-copytree(db1,db)
+if not os.path.exists(db): copytree(db1,db)
 
 db_path = os.path.join(db, 'hashImage.ldb')
 hashImage = plyvel.DB(db_path)

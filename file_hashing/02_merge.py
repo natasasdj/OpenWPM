@@ -65,9 +65,9 @@ for key2, value2 in hash2Html:
         print f
         f2=value2.rstrip(".html").split('-')
         print f2
-        fpath = os.path.join(data_dir, 'output_' + str(int(f[1])/100*100 + 1), 'httpResp','site-'+f[1], value + '.bz2')
+        fpath = os.path.join(data_dir, 'output_' + str((int(f[1])-1)/100) + '01', 'httpResp','site-'+f[1], value + '.bz2')
         if not os.path.exists(fpath): print "fpath Html", fpath 
-        f2path = os.path.join(data_dir, 'output_' + str(int(f2[1])/100*100 + 1), 'httpResp','site-'+f2[1], value2)
+        f2path = os.path.join(data_dir, 'output_' + str((int(f2[1])-1)/100) + '01', 'httpResp','site-'+f2[1], value2)
         if not os.path.exists(f2path): print "f2path Html", f2path
         os.remove(f2path  + '.bz2')        
         os.symlink(fpath, f2path)  

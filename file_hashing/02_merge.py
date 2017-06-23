@@ -45,7 +45,7 @@ for key2, value2 in hash2Image:
         print f2
         fpath = os.path.join(data_dir,'output_' + str((int(f[1])-1)/100) + '01', 'httpResp','site-'+f[1],value)
         if not os.path.exists(fpath): print "fpath Image", fpath
-        f2path = os.path.join(data_dir, 'output_' + str((int(f[1])-1)/100) + '01', 'httpResp','site-'+f2[1],value2)
+        f2path = os.path.join(data_dir, 'output_' + str((int(f2[1])-1)/100) + '01', 'httpResp','site-'+f2[1],value2)
         if not os.path.exists(f2path): print "f2path Image", f2path
         os.remove(f2path)        
         os.symlink(fpath,f2path)  

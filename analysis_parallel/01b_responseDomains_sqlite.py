@@ -27,6 +27,7 @@ query = "SELECT * FROM http_responses WHERE (file_name IS NOT NULL) AND (NOT ins
 df2 = pd.read_sql_query(query,conn)
 
 df = df1.merge(df2, on = ('site_id','link_id'),how='inner').sort_values(['site_id','link_id','response_id'])
+print df.shape[0]
 
 t1 = timer()
 print "time for getting data:", t1 - ts
@@ -47,11 +48,13 @@ for index, row in df.iterrows():
         domain_id = cur1.fetchone()[0]
     except:
         cur1.execute('INSERT INTO Domains (id,domain) VALUES (?,?)',(None,domain))
+
+conn1.commit()
     
 te = timer()
 print "time:", te - ts
 
-conn1.commit()
+
 conn1.close()
 conn.close()  
 

@@ -51,6 +51,7 @@ query = "SELECT * FROM http_responses WHERE (file_name IS NOT NULL) AND (NOT ins
 df2 = pd.read_sql_query(query,conn)
 
 df = df1.merge(df2, on = ('site_id','link_id'),how='inner').sort_values(['site_id','link_id','response_id'])
+print df.shape[0]
 
 t1 = timer()
 print "time for getting data:", t1 - ts
@@ -126,7 +127,7 @@ for index, row in df.iterrows():
     cur1.execute('INSERT INTO Images (site_id, link_id, resp_id, resp_domain, size, cont_length, type, cont_type, pixels) VALUES (?, ?, ?, ?, ?, ?, ?, ?,?)', (row['site_id'], row['link_id'], row['response_id'], domain_id, size, cont_length, type_id, cont_type_id, no_pixels)) 
                  
     k += 1
-    if k % 100:
+    if k % 1000:
         print row['site_id']
         conn1.commit()
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for i in {1..1}
+for i in {0..99}
 do
     echo $i
     start=${i}01

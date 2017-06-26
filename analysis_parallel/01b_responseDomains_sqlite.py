@@ -20,14 +20,16 @@ cur1 = conn1.cursor()
 
 ts = timer()
 
-print "start 1"
-query = 'SELECT * FROM site_visits WHERE (link_id = 0 AND resp_time_2 IS NOT NULL) OR (link_id != 0 AND resp_time_3 IS NOT NULL) ORDER BY site_id ASC, link_id ASC'
+query = 'SELECT * FROM site_visits WHERE (link_id = 0 AND resp_time_3 IS NOT NULL) OR (link_id != 0 AND resp_time_2 IS NOT NULL)'
 df1 = pd.read_sql_query(query,conn)
-print "start 2"
-query = 'SELECT * FROM http_responses'
+
+query = "SELECT * FROM http_responses WHERE (file_name IS NOT NULL) AND (NOT instr(file_name, 'html') > 0);"
 df2 = pd.read_sql_query(query,conn)
-print "start 3"
-df = df1.merge(df2, on = ('site_id','link_id'),how='left')
+
+df = df1.merge(df2, on = ('site_id','link_id'),how='inner').sort_values(['site_id','link_id','response_id'])
+
+t1 = timer()
+print "time for getting data:", t1 - ts
 
 
 k = 0

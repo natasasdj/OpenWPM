@@ -1,7 +1,7 @@
 #!/bin/bash
 
 source /home/nsarafij/env/bin/activate
-for i in {2..99}
+for i in {0..1}
 do
     #echo $i
     start=${i}01

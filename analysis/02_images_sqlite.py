@@ -42,7 +42,7 @@ conn = sqlite3.connect(db)
 
 ts = timer()
 
-query = 'SELECT * FROM site_visits WHERE (link_id = 0 AND resp_time_2 IS NOT NULL) OR (link_id != 0 AND resp_time_3 IS NOT NULL) ORDER BY site_id ASC, link_id ASC'
+query = 'SELECT * FROM site_visits WHERE (link_id = 0 AND resp_time_3 IS NOT NULL) OR (link_id != 0 AND resp_time_2 IS NOT NULL) ORDER BY site_id ASC, link_id ASC'
 df1 = pd.read_sql_query(query,conn)
 #print "start 2"
 query = 'SELECT * FROM http_responses'

@@ -2,7 +2,7 @@ import os
 import sys
 import plyvel
 import sqlite3
-from shutil import copytree
+from shutil import rmtree
 from timeit import default_timer as timer
 
 
@@ -17,7 +17,8 @@ db2 = os.path.join(hash_dir,sys.argv[4])
 split = db2.split("_")
 second = split[-1]
 db = os.path.join(hash_dir,'db_' + first + '_' + second)
-if not os.path.exists(db): copytree(db1,db)
+#if not os.path.exists(db): copytree(db1,db)
+os.rename(db1,db)
 
 db_path = os.path.join(db, 'hashImage.ldb')
 hashImage = plyvel.DB(db_path)
@@ -34,19 +35,17 @@ db_name = os.path.join(db,'fileHashing.sqlite')
 conn = sqlite3.connect(db_name)
 cur = conn.cursor()
 
-
+k = 0
 for key2, value2 in hash2Image:
     value = hashImage.get(key2)
     if value:
         if value2 == value: continue
         f=value.rstrip(".html").split('-')
-        print f
         f2=value2.rstrip(".html").split('-')
-        print f2
         fpath = os.path.join(data_dir,'output_' + str((int(f[1])-1)/100) + '01', 'httpResp','site-'+f[1],value)
-        if not os.path.exists(fpath): print "fpath Image", fpath
+        if not os.path.exists(fpath): print "not exists: fpath Image", fpath
         f2path = os.path.join(data_dir, 'output_' + str((int(f2[1])-1)/100) + '01', 'httpResp','site-'+f2[1],value2)
-        if not os.path.exists(f2path): print "f2path Image", f2path
+        if not os.path.exists(f2path): print "not exists: f2path Image", f2path
         os.remove(f2path)        
         os.symlink(fpath,f2path)  
         cur.execute('SELECT count FROM Images WHERE site_id = {} and link_id = {} and resp_id = {}'.format(f[1],f[2],f[3]))
@@ -54,22 +53,28 @@ for key2, value2 in hash2Image:
     else:
         hashImage.put(key2,value2)
         f2=value2.rstrip(".html").split('-')
-        cur.execute('INSERT INTO Images (site_id, link_id, resp_id, count) VALUES({},{},{},{})'.format(f2[1],f2[2],f2[3],1))     
+        cur.execute('INSERT INTO Images (site_id, link_id, resp_id, count) VALUES({},{},{},{})'.format(f2[1],f2[2],f2[3],1)) 
+    k+=1
+    if k % 1000 == 0: conn.commit()
+        
 conn.commit()
 
+k = 0
 for key2, value2 in hash2Html:
     value = hashHtml.get(key2)
     if value:
         if value2 == value: continue
         f=value.rstrip(".html").split('-')
-        print f
         f2=value2.rstrip(".html").split('-')
-        print f2
         fpath = os.path.join(data_dir, 'output_' + str((int(f[1])-1)/100) + '01', 'httpResp','site-'+f[1], value + '.bz2')
-        if not os.path.exists(fpath): print "fpath Html", fpath 
+        if not os.path.exists(fpath): print "not exists: fpath Html", fpath 
         f2path = os.path.join(data_dir, 'output_' + str((int(f2[1])-1)/100) + '01', 'httpResp','site-'+f2[1], value2)
-        if not os.path.exists(f2path): print "f2path Html", f2path
-        os.remove(f2path  + '.bz2')        
+        if os.path.exists(f2path + '.bz2'): 
+            os.remove(f2path + '.bz2') 
+        elif os.path.exists(f2path): 
+            os.remove(f2path)
+        else: 
+            print "not exists: f2path Html", f2path               
         os.symlink(fpath, f2path)  
         cur.execute('SELECT count FROM Htmls WHERE site_id = {} and link_id = {} and resp_id = {}'.format(f[1],f[2],f[3]))
         cur.execute('UPDATE Htmls SET count = {3} WHERE site_id = {0} and link_id = {1} and resp_id = {2}'.format(f[1],f[2],f[3],cur.fetchone()[0] + 1))
@@ -77,10 +82,13 @@ for key2, value2 in hash2Html:
         hashHtml.put(key2,value2)
         f2=value2.rstrip(".html").split('-')
         print f2
-        cur.execute('INSERT INTO Htmls (site_id, link_id, resp_id, count) VALUES({},{},{},{})'.format(f2[1],f2[2],f2[3],1))            
+        cur.execute('INSERT INTO Htmls (site_id, link_id, resp_id, count) VALUES({},{},{},{})'.format(f2[1],f2[2],f2[3],1)) 
+    k+=1
+    if k % 1000 == 0: conn.commit()
+                   
 conn.commit()
 
 conn.close()
-#rm -rf db2_dir   
+rmtree(db2)   
 
 

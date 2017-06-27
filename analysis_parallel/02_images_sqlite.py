@@ -33,7 +33,7 @@ cur1.execute('CREATE TABLE IF NOT EXISTS Images (site_id INTEGER NOT NULL, link_
 
 cur1.execute('CREATE TABLE IF NOT EXISTS Types (id INTEGER PRIMARY KEY NOT NULL, type TEXT UNIQUE)')
 
-db = res_dir + 'domains.sqlite'
+db = os.path.join(res_dir,'domains.sqlite')
 conn2 = sqlite3.connect(db)
 cur2 = conn2.cursor()
 

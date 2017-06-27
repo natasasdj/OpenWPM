@@ -87,8 +87,8 @@ for key2, value2 in hash2Html:
     if k % 1000 == 0: conn.commit()
                    
 conn.commit()
-
 conn.close()
+time.sleep(5)
 rmtree(db2)   
 
 

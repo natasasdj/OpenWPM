@@ -39,7 +39,8 @@ conn2 = sqlite3.connect(db)
 cur2 = conn2.cursor()
 print "2"
 
-db= os.path.join(res_dir,'crawl-data_'+start_site+'.sqlite')
+#db= os.path.join(res_dir,'crawl-data_'+start_site+'.sqlite')
+db= os.path.join(sys.argv[4])
 conn = sqlite3.connect(db)
 print "3"
 

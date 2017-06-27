@@ -9,7 +9,6 @@ import xml.etree.ElementTree as ET
 from PIL import Image
 from timeit import default_timer as timer
 
-
 data_dir = sys.argv[1]
 print data_dir
 start_site = data_dir.split("_")[1]
@@ -24,6 +23,8 @@ print db
 conn1 = sqlite3.connect(db)
 cur1 = conn1.cursor()
 
+print "1"
+
 cur1.execute('CREATE TABLE IF NOT EXISTS Images (site_id INTEGER NOT NULL, link_id INTEGER NOT NULL, resp_id INTEGER NOT NULL, \
                                   resp_domain INTEGER NOT NULL, size INTEGER, cont_length INTEGER, \
                                   type INTEGER,  cont_type INTEGER, pixels INTEGER,  \
@@ -36,10 +37,11 @@ cur1.execute('CREATE TABLE IF NOT EXISTS Types (id INTEGER PRIMARY KEY NOT NULL,
 db = os.path.join(res_dir,'domains.sqlite')
 conn2 = sqlite3.connect(db)
 cur2 = conn2.cursor()
+print "2"
 
-db= os.path.join(data_dir,'crawl-data.sqlite')
+db= os.path.join(res_dir,'crawl-data_'+start_site+'.sqlite')
 conn = sqlite3.connect(db)
-
+print "3"
 
 
 ts = timer()
@@ -47,9 +49,11 @@ ts = timer()
 query = 'SELECT * FROM site_visits WHERE (link_id = 0 AND resp_time_3 IS NOT NULL) OR (link_id != 0 AND resp_time_2 IS NOT NULL)'
 df1 = pd.read_sql_query(query,conn)
 
+print "4"
 query = "SELECT * FROM http_responses WHERE (file_name IS NOT NULL) AND (NOT instr(file_name, 'html') > 0);"
 df2 = pd.read_sql_query(query,conn)
 
+print "5"
 df = df1.merge(df2, on = ('site_id','link_id'),how='inner').sort_values(['site_id','link_id','response_id'])
 print df.shape[0]
 
@@ -58,7 +62,8 @@ print "time for getting data:", t1 - ts
 
 k = 0 
 for index, row in df.iterrows():
-    # print row['site_id'],row['link_id'], row['response_id'] 
+    #print row['site_id'],row['link_id'], row['response_id'] 
+    #if k>1000: break 
     header = row['headers']
     i1 = header.find('"Content-Length",') 
     i2 = header.find('"', i1+len('"Content-Length"'))
@@ -127,8 +132,8 @@ for index, row in df.iterrows():
     cur1.execute('INSERT INTO Images (site_id, link_id, resp_id, resp_domain, size, cont_length, type, cont_type, pixels) VALUES (?, ?, ?, ?, ?, ?, ?, ?,?)', (row['site_id'], row['link_id'], row['response_id'], domain_id, size, cont_length, type_id, cont_type_id, no_pixels)) 
                  
     k += 1
-    if k % 1000:
-        print row['site_id']
+    if k % 1000 == 0:
+        print k, row['site_id'], row['link_id'], row['response_id']
         conn1.commit()
 
 conn1.commit()

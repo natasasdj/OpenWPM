@@ -40,18 +40,18 @@ cur2 = conn2.cursor()
 print "2"
 
 #db= os.path.join(res_dir,'crawl-data_'+start_site+'.sqlite')
-db= os.path.join(sys.argv[4])
+db= sys.argv[4]
 conn = sqlite3.connect(db)
 print "3"
 
 
 ts = timer()
 
-query = 'SELECT * FROM site_visits WHERE (link_id = 0 AND resp_time_3 IS NOT NULL) OR (link_id != 0 AND resp_time_2 IS NOT NULL)'
+query = 'SELECT site_id, link_id  FROM site_visits WHERE (link_id = 0 AND resp_time_3 IS NOT NULL) OR (link_id != 0 AND resp_time_2 IS NOT NULL)'
 df1 = pd.read_sql_query(query,conn)
 
 print "4"
-query = "SELECT * FROM http_responses WHERE (file_name IS NOT NULL) AND (NOT instr(file_name, 'html') > 0);"
+query = "SELECT site_id,link_id,response_id,file_name FROM http_responses WHERE (file_name IS NOT NULL) AND (NOT instr(file_name, 'html') > 0)"
 df2 = pd.read_sql_query(query,conn)
 
 print "5"

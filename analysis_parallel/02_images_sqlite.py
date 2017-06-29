@@ -51,7 +51,7 @@ query = 'SELECT site_id, link_id  FROM site_visits WHERE (link_id = 0 AND resp_t
 df1 = pd.read_sql_query(query,conn)
 
 print "4"
-query = "SELECT site_id,link_id,response_id,file_name FROM http_responses WHERE (file_name IS NOT NULL) AND (NOT instr(file_name, 'html') > 0)"
+query = "SELECT site_id, link_id, response_id, url, headers, file_name FROM http_responses WHERE (file_name IS NOT NULL) AND (NOT instr(file_name, 'html') > 0)"
 df2 = pd.read_sql_query(query,conn)
 
 print "5"

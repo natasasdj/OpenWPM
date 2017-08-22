@@ -30,7 +30,7 @@ res_dir = os.path.join(main_dir,'results')
 db = os.path.join(res_dir,'images3.sqlite')
 conn3 = sqlite3.connect(db)
 query = 'SELECT * FROM Images3'
-df4 = pd.read_sql_query(query,conn3)
+df3 = pd.read_sql_query(query,conn3)
 
 df3['cont_length'] = pd.to_numeric(df3['cont_length'],errors='coerce',downcast='integer')
 s = df3[df3['size']!=df3['cont_length']]

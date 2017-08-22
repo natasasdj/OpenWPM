@@ -57,11 +57,32 @@ df.drop('id',inplace=True,axis=1)
 df.columns = ['respDom_domain2' if x=='baseDomain' else x for x in df.columns]
 
 
+db = os.path.join(res_dir,'imagesMerged.sqlite')
+conn1 = sqlite3.connect(db)
+cur1=conn.cursor()
+cur1.execute('CREATE TABLE IF NOT EXISTS Df (site_id INTEGER NOT NULL, link_id INTEGER NOT NULL, resp_id INTEGER NOT NULL, \
+                                                 respDom_id INTEGER, size INTEGER, cont_length INTEGER, type INTEGER, cont_type INTEGER, pixels INTEGER, \
+                                                 site_id2 INTEGER, respDom_id2 INTEGER, site_domain2 TEXT, respDom_domain2 TEXT, \
+                                                 PRIMARY KEY (site_id, link_id, resp_id))')
+
+df.to_sql('Df', conn1, if_exists = 'append', index = False)
+
 # query = 'SELECT * FROM df'
 # df = pd.read_sql_query(query,conn)
 
 
 df3 = df[df['site_id2'] != df['respDom_id2']]
+
+db = os.path.join(res_dir,'images3.sqlite')
+conn3 = sqlite3.connect(db)
+cur3=conn.cursor()
+cur3.execute('CREATE TABLE IF NOT EXISTS Images3 (site_id INTEGER NOT NULL, link_id INTEGER NOT NULL, resp_id INTEGER NOT NULL, \
+                                                 respDom_id INTEGER, size INTEGER, cont_length INTEGER, type INTEGER, cont_type INTEGER, pixels INTEGER, \
+                                                 site_id2 INTEGER, respDom_id2 INTEGER, site_domain2 TEXT, respDom_domain2 TEXT, \
+                                                 PRIMARY KEY (site_id, link_id, resp_id))')
+
+df3.to_sql('Images3', conn3, if_exists = 'append', index = False)
+
 
 # number of images
 df.shape[0] #31861758 odf #45865581 n #132348177
@@ -81,15 +102,6 @@ size_count_ = size_count/float(df3.shape[0])*100
 df3['cont_length'] = pd.to_numeric(df3['cont_length'],errors='coerce',downcast='integer')
 
 
-db = os.path.join(res_dir,'images3.sqlite')
-conn3 = sqlite3.connect(db)
-cur3=conn.cursor()
-cur3.execute('CREATE TABLE IF NOT EXISTS Images3 (site_id INTEGER NOT NULL, link_id INTEGER NOT NULL, resp_id INTEGER NOT NULL, \
-                                                 respDom_id INTEGER, size INTEGER, cont_length INTEGER, type INTEGER, cont_type INTEGER, pixels INTEGER, \
-                                                 site_id2 INTEGER, respDom_id2 INTEGER, site_domain2 TEXT, respDom_domain2 TEXT, \
-                                                 PRIMARY KEY (site_id, link_id, resp_id))')
-
-df3.to_sql('Images3',conn3,if_exists = 'append')
 
 s = df3[df3['size']!=df3['cont_length']]
 s['size'] 

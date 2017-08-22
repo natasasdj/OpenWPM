@@ -1,11 +1,25 @@
+import sqlite3
+import os
+import pandas as pd
 
-# on how many pages appear third-party images
-# on how many homesites appear third party images
-# on how many first links appear third-party images
-# on how many domains appear third party images
+# on how many pages appear third-party/one-pixel/zero-size images
+# on how many homesites appear third party/one-pixel/zero-size images
+# on how many first links appear third-party/one-pixel/zero-size images
+# on how many domains appear third party/one-pixel/zero-size images
 
 
-#df3 - third party images
+################ df3 - third party images
+
+
+main_dir = '/root/OpenWPM/analysis_parallel/'
+res_dir = os.path.join(main_dir,'results')
+db = os.path.join(res_dir,'images3.sqlite')
+conn3 = sqlite3.connect(db)
+query = 'SELECT * FROM Images3'
+df3 = pd.read_sql_query(query,conn3)
+conn3.close()
+
+
 
 #find how many unique site_id, link_id are there
 #find how many unique site_id where link_id=0
@@ -34,7 +48,8 @@ float(no_domains)/total_homesites
 
 
 
-# one-pixel images
+##### ##### ###### ##### one-pixel images
+
 pages = df3[df3['pixels']==1][['site_id','link_id']].drop_duplicates()
 no_pages = pages.shape[0]
 total_pages = 4347837 # 00_statistics.py
@@ -55,7 +70,7 @@ no_domains = domains.shape[0]
 float(no_domains)/total_homesites
 # 0.8664304643392096
 
-# zero-size images
+##### ##### ##### ##### zero-size images
 
 pages = df3[df3['size']==0][['site_id','link_id']].drop_duplicates()
 no_pages = pages.shape[0]

@@ -229,9 +229,7 @@ exports.writeRespBodyIntoFile = function(respBody,type) {
   aFile.createUnique(Ci.nsIFile.NORMAL_FILE_TYPE, 0600);
   var stream = Cc["@mozilla.org/network/safe-file-output-stream;1"].createInstance(Ci.nsIFileOutputStream);
   stream.init(aFile, 0x04 | 0x08 | 0x20, 0600, 0); // readwrite, create, truncate           
-  if (type == "image" && respBody.length < 100 000){
-    stream.write(respBody, respBody.length);
-    }
+  stream.write(respBody, respBody.length);
   console.log(siteID,linkID,responseID,"response Body length = ", respBody.length) 
   //"bytes = ", Buffer.byteLength(respBody, 'utf8') )  
   if (stream instanceof Ci.nsISafeOutputStream) {
